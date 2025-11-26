@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight, Star, ShoppingCart, Heart, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -97,10 +98,11 @@ export const ProductShowcase = () => {
                                 <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 group/card h-full flex flex-col">
                                     <div className="relative aspect-video overflow-hidden">
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
-                                        <img
+                                        <Image
                                             src={product.image}
                                             alt={product.name}
-                                            className="w-full h-full object-cover transform group-hover/card:scale-110 transition-transform duration-700"
+                                            layout="fill"
+                                            className="object-cover transform group-hover/card:scale-110 transition-transform duration-700"
                                         />
                                         <Badge className="absolute top-4 right-4 z-20 bg-primary text-primary-foreground font-bold">
                                             {product.category}

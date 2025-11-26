@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, Grid, List, Star, ShoppingCart } from 'lucide-react';
 import { supabase, Product, Category } from '@/lib/supabase';
@@ -27,11 +27,7 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [selectedCategory, sortBy, searchQuery]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
 
     const { data: categoriesData } = await supabase
@@ -68,7 +64,11 @@ export default function ProductsPage() {
 
     if (productsData) setProducts(productsData);
     setLoading(false);
-  }
+  }, [selectedCategory, sortBy, searchQuery]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   return (
     <main className="min-h-screen bg-black">
