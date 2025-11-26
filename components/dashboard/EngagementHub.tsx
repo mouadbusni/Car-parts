@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,10 +38,11 @@ export const EngagementHub = () => {
                         <Card key={index} className="group overflow-hidden bg-card/50 border-border hover:border-primary/50 transition-colors duration-300">
                             <div className="relative aspect-video overflow-hidden">
                                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 z-10" />
-                                <img
+                                <Image
                                     src={article.image}
                                     alt={article.title}
-                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                    layout="fill"
+                                    className="object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 />
                                 <Badge className="absolute top-4 left-4 z-20 bg-primary text-primary-foreground">
                                     {article.category}
@@ -70,8 +72,13 @@ export const EngagementHub = () => {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="flex items-start space-x-3 p-3 bg-background/30 rounded-lg border border-white/5">
-                                <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="User" />
+                                <div className="relative w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
+                                    <Image
+                                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"
+                                        alt="User"
+                                        layout="fill"
+                                        className="object-cover"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-white">Alex M.</p>

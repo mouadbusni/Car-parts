@@ -8,17 +8,15 @@ import Footer from '@/components/footer';
 export const revalidate = 3600;
 
 export default async function Home() {
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name');
-
-  const { data: featuredProducts } = await supabase
-    .from('products')
-    .select('*')
-    .eq('is_featured', true)
-    .order('rating', { ascending: false })
-    .limit(6);
+  const [{ data: categories }, { data: featuredProducts }] = await Promise.all([
+    supabase.from('categories').select('*').order('name'),
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_featured', true)
+      .order('rating', { ascending: false })
+      .limit(6),
+  ]);
 
   return (
     <main className="min-h-screen bg-black">

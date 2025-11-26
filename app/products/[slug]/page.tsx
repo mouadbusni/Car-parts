@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 export const dynamicParams = true;
@@ -32,11 +32,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadProduct();
-  }, [slug]);
-
-  async function loadProduct() {
+  const loadProduct = useCallback(async () => {
     const { data } = await supabase
       .from('products')
       .select('*')
@@ -45,7 +41,11 @@ export default function ProductDetailPage() {
 
     if (data) setProduct(data);
     setLoading(false);
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
 
   if (loading) {
     return (
