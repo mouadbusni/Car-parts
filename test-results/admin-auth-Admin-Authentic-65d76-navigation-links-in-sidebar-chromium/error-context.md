@@ -1,0 +1,76 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - heading "Admin Panel" [level=2] [ref=e5]
+      - navigation [ref=e6]:
+        - list [ref=e7]:
+          - listitem [ref=e8]:
+            - link "Dashboard" [ref=e9] [cursor=pointer]:
+              - /url: /admin
+          - listitem [ref=e10]:
+            - link "Products" [ref=e11] [cursor=pointer]:
+              - /url: /admin/products
+          - listitem [ref=e12]:
+            - link "Orders" [ref=e13] [cursor=pointer]:
+              - /url: /admin/orders
+          - listitem [ref=e14]:
+            - link "Customers" [ref=e15] [cursor=pointer]:
+              - /url: /admin/customers
+          - listitem [ref=e16]:
+            - link "Content" [ref=e17] [cursor=pointer]:
+              - /url: /admin/content
+          - listitem [ref=e18]:
+            - link "Analytics" [ref=e19] [cursor=pointer]:
+              - /url: /admin/analytics
+          - listitem [ref=e20]:
+            - link "Settings" [ref=e21] [cursor=pointer]:
+              - /url: /admin/settings
+      - generic [ref=e22]:
+        - paragraph [ref=e24]: admin@admin.com
+        - button "Logout" [ref=e25] [cursor=pointer]:
+          - img [ref=e26]
+          - text: Logout
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - button [ref=e31] [cursor=pointer]:
+          - img [ref=e32]
+        - generic [ref=e35]: Welcome, admin@admin.com
+      - generic [ref=e37]:
+        - heading "Dashboard" [level=1] [ref=e38]
+        - generic [ref=e39]:
+          - link "Products 1" [ref=e40] [cursor=pointer]:
+            - /url: /admin/products
+            - generic [ref=e43]:
+              - paragraph [ref=e44]: Products
+              - paragraph [ref=e45]: "1"
+          - link "Orders 0" [ref=e47] [cursor=pointer]:
+            - /url: /admin/orders
+            - generic [ref=e50]:
+              - paragraph [ref=e51]: Orders
+              - paragraph [ref=e52]: "0"
+          - link "Categories 1" [ref=e54] [cursor=pointer]:
+            - /url: /admin/content
+            - generic [ref=e57]:
+              - paragraph [ref=e58]: Categories
+              - paragraph [ref=e59]: "1"
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - heading "Quick Actions" [level=2] [ref=e63]
+            - generic [ref=e64]:
+              - link "+ Add New Product" [ref=e65] [cursor=pointer]:
+                - /url: /admin/products/new
+              - link "View All Products" [ref=e66] [cursor=pointer]:
+                - /url: /admin/products
+              - link "Go to Settings" [ref=e67] [cursor=pointer]:
+                - /url: /admin/settings
+          - generic [ref=e68]:
+            - heading "System Info" [level=2] [ref=e69]
+            - generic [ref=e70]:
+              - paragraph [ref=e71]: "Admin Status: Active"
+              - paragraph [ref=e72]: "Database: Connected"
+              - paragraph [ref=e73]: "Version: 1.0.0"
+  - alert [ref=e74]
+```

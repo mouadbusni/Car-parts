@@ -1,0 +1,143 @@
+
+> nextjs@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+  ▲ Next.js 13.5.1
+  - Local:        http://localhost:3001
+  - Environments: .env
+
+ ✓ Ready in 6.4s
+ ○ compiling /page ...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/categories/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/categories/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/categories/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ⚠ ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/main/index.js
+./lib/supabase.ts
+./app/page.tsx
+ ✓ Compiled /not-found in 6.9s (737 modules)
+ ✓ Compiled in 914ms (737 modules)
+ ✓ Compiled in 832ms (737 modules)
+ ✓ Compiled in 572ms (737 modules)
+ ✓ Compiled in 643ms (737 modules)
+ ✓ Compiled in 637ms (737 modules)
+ ✓ Compiled in 1106ms (737 modules)
+ ✓ Compiled in 1074ms (737 modules)
+ ✓ Compiled in 662ms (737 modules)
+ ✓ Compiled in 720ms (737 modules)
+ ✓ Compiled in 731ms (737 modules)
+ ✓ Compiled in 1604ms (737 modules)
+ ✓ Compiled in 796ms (737 modules)
+ ✓ Compiled in 789ms (737 modules)
+ ✓ Compiled in 670ms (737 modules)
+ ✓ Compiled in 795ms (737 modules)
+ ✓ Compiled in 650ms (737 modules)
+ ✓ Compiled in 830ms (737 modules)
+ ✓ Compiled in 961ms (737 modules)
+ ✓ Compiled in 1196ms (737 modules)
+ ✓ Compiled in 1556ms (737 modules)
+ ✓ Compiled in 938ms (737 modules)
+ ✓ Compiled in 806ms (737 modules)
+ ✓ Compiled in 1065ms (737 modules)
+ ✓ Compiled in 771ms (737 modules)
+ ✓ Compiled in 670ms (737 modules)
+ ✓ Compiled in 856ms (737 modules)
+ ✓ Compiled in 767ms (737 modules)
+ ✓ Compiled in 1410ms (737 modules)
+ ✓ Compiled in 1011ms (737 modules)
+ ✓ Compiled in 781ms (737 modules)
+ ✓ Compiled in 1281ms (737 modules)
+ ✓ Compiled in 1298ms (737 modules)
+ ✓ Compiled in 824ms (737 modules)
+ ✓ Compiled in 868ms (737 modules)
+ ✓ Compiled in 1097ms (737 modules)
+ ✓ Compiled in 724ms (737 modules)
+ ✓ Compiled in 664ms (737 modules)
+ ✓ Compiled in 1282ms (737 modules)

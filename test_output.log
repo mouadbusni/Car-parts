@@ -1,0 +1,83 @@
+
+> nextjs@0.1.0 test
+> playwright test tests/qa.spec.ts --workers=1
+
+
+Running 25 tests using 1 worker
+
+[1A[2K[1/25] [chromium] › tests\qa.spec.ts:5:7 › Technical QA › Performance: Home page load time should be under 10 seconds
+[1A[2K[2/25] [chromium] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+[1A[2K[chromium] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+Found 3 accessibility violations:
+
+[1A[2K- button-name: Ensure buttons have discernible text (critical)
+
+[1A[2K- color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (serious)
+
+[1A[2K- link-name: Ensure links have discernible text (serious)
+
+[1A[2K[3/25] [chromium] › tests\qa.spec.ts:40:7 › Technical QA › SEO: Home page should have required meta tags
+[1A[2K[4/25] [chromium] › tests\qa.spec.ts:52:7 › Technical QA › SEO: Robots.txt should be accessible
+[1A[2K[5/25] [chromium] › tests\qa.spec.ts:57:7 › Technical QA › SEO: Sitemap should be accessible
+[1A[2K[6/25] [firefox] › tests\qa.spec.ts:5:7 › Technical QA › Performance: Home page load time should be under 10 seconds
+[1A[2K[7/25] [firefox] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+[1A[2K[firefox] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+Found 3 accessibility violations:
+
+[1A[2K- button-name: Ensure buttons have discernible text (critical)
+
+[1A[2K- color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (serious)
+
+[1A[2K- link-name: Ensure links have discernible text (serious)
+
+[1A[2K[8/25] [firefox] › tests\qa.spec.ts:40:7 › Technical QA › SEO: Home page should have required meta tags
+[1A[2K[9/25] [firefox] › tests\qa.spec.ts:52:7 › Technical QA › SEO: Robots.txt should be accessible
+[1A[2K[10/25] [firefox] › tests\qa.spec.ts:57:7 › Technical QA › SEO: Sitemap should be accessible
+[1A[2K[11/25] [webkit] › tests\qa.spec.ts:5:7 › Technical QA › Performance: Home page load time should be under 10 seconds
+[1A[2K[12/25] [webkit] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+[1A[2K[webkit] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+Found 3 accessibility violations:
+
+[1A[2K- button-name: Ensure buttons have discernible text (critical)
+
+[1A[2K- color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (serious)
+
+[1A[2K- link-name: Ensure links have discernible text (serious)
+
+[1A[2K[13/25] [webkit] › tests\qa.spec.ts:40:7 › Technical QA › SEO: Home page should have required meta tags
+[1A[2K[14/25] [webkit] › tests\qa.spec.ts:52:7 › Technical QA › SEO: Robots.txt should be accessible
+[1A[2K[15/25] [webkit] › tests\qa.spec.ts:57:7 › Technical QA › SEO: Sitemap should be accessible
+[1A[2K[16/25] [Mobile Chrome] › tests\qa.spec.ts:5:7 › Technical QA › Performance: Home page load time should be under 10 seconds
+[1A[2K[17/25] [Mobile Chrome] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+[1A[2K[Mobile Chrome] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+Found 3 accessibility violations:
+
+[1A[2K- button-name: Ensure buttons have discernible text (critical)
+
+[1A[2K- color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (serious)
+
+[1A[2K- link-name: Ensure links have discernible text (serious)
+
+[1A[2K[18/25] [Mobile Chrome] › tests\qa.spec.ts:40:7 › Technical QA › SEO: Home page should have required meta tags
+[1A[2K[19/25] [Mobile Chrome] › tests\qa.spec.ts:52:7 › Technical QA › SEO: Robots.txt should be accessible
+[1A[2K[20/25] [Mobile Chrome] › tests\qa.spec.ts:57:7 › Technical QA › SEO: Sitemap should be accessible
+[1A[2K[21/25] [Mobile Safari] › tests\qa.spec.ts:5:7 › Technical QA › Performance: Home page load time should be under 10 seconds
+[1A[2K[22/25] [Mobile Safari] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+[1A[2K[Mobile Safari] › tests\qa.spec.ts:13:7 › Technical QA › Accessibility: Home page accessibility audit
+Found 3 accessibility violations:
+
+[1A[2K- button-name: Ensure buttons have discernible text (critical)
+
+[1A[2K- color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (serious)
+
+[1A[2K- link-name: Ensure links have discernible text (serious)
+
+[1A[2K[23/25] [Mobile Safari] › tests\qa.spec.ts:40:7 › Technical QA › SEO: Home page should have required meta tags
+[1A[2K[24/25] [Mobile Safari] › tests\qa.spec.ts:52:7 › Technical QA › SEO: Robots.txt should be accessible
+[1A[2K[25/25] [Mobile Safari] › tests\qa.spec.ts:57:7 › Technical QA › SEO: Sitemap should be accessible
+[1A[2K  25 passed (2.1m)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m
