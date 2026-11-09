@@ -63,9 +63,9 @@ function perforatedDisc(radius, inner, layerDepth) {
 function makeCaliper() {
   const root=new THREE.Group();
   root.name='Six-piston caliper';
-  const blue=material(0x2359ac,.66,.18,{clearcoat:1,clearcoatRoughness:.1});
-  const darker=material(0x0e2759,.85,.32);
-  const chrome=material(0x9daec9,.93,.2);
+  const blue=material(0x193f83,.73,.3,{clearcoat:.63,clearcoatRoughness:.26});
+  const darker=material(0x0d213f,.84,.42);
+  const chrome=material(0x78889a,.93,.32);
   const gasket=material(0x111723,.38,.67);
   const bolt=material(0xbacbdb,.95,.17);
   const shape=new THREE.Shape();
@@ -79,7 +79,7 @@ function makeCaliper() {
   // Mechanical inspection windows are geometry cutouts.
   for(const y of [-.40,.37]) {
     const hole=new THREE.Path();
-    hole.absellipse(-.15,y,.22,.13,0,TAU,true);
+    hole.absellipse(-.15,y,.16,.085,0,TAU,true);
     shape.holes.push(hole);
   }
   const body=new THREE.Mesh(
@@ -88,8 +88,8 @@ function makeCaliper() {
   body.position.z=-.21;body.castShadow=true;body.receiveShadow=true;
   root.add(body);
   for(const y of [-.55,.05,.62]) {
-    const bar=roundedBox(1.34,.14,.21,.065,blue);
-    bar.position.set(.05,y,.35);
+    const bar=roundedBox(1.34,.12,.17,.045,blue);
+    bar.position.set(.05,y,.26);
     root.add(bar);
   }
   for(const y of [-.62,.62]) {
@@ -121,7 +121,7 @@ function makeCaliper() {
   texture.colorSpace=THREE.SRGBColorSpace;
   const mark=new THREE.Mesh(new THREE.PlaneGeometry(.94,.27),
     new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
-  mark.position.set(.09,.03,.493);
+  mark.position.set(.08,.03,.28);
   root.add(mark);
   // Brake line connector, physically mounted to top of caliper.
   const nozzle=cylinder(.105,.09,.26,chrome,24);
@@ -131,7 +131,7 @@ function makeCaliper() {
   const nipple=cylinder(.065,.06,.08,bolt,6);
   nipple.rotation.set(0,0,Math.PI/2);
   nipple.position.set(.3,.99,.13);root.add(nipple);
-  root.position.set(1.57,.12,.28);
+  root.position.set(1.54,.11,.31);
   root.rotation.z=-.13;
   root.userData.materials=[blue,darker,chrome,gasket,bolt];
   return root;
@@ -140,11 +140,11 @@ function createBrake() {
   const root=new THREE.Group();
   root.name='Autopro original 3D brake assembly';
   const rotor=new THREE.Group();
-  const ceramic=material(0x707e91,.8,.27,{clearcoat:.45,clearcoatRoughness:.27});
-  const edge=material(0x2d3a4c,.83,.38);
-  const brushed=material(0x8999ac,.91,.18);
-  const inset=material(0x152132,.72,.39);
-  const bolt=material(0xd4dce5,.96,.17);
+  const ceramic=material(0x505d6b,.92,.42,{clearcoat:.10,clearcoatRoughness:.46});
+  const edge=material(0x1d2630,.89,.56);
+  const brushed=material(0x78889b,.94,.31);
+  const inset=material(0x17222e,.8,.52);
+  const bolt=material(0x9dabba,.95,.24);
   const hole=material(0x0c1421,.25,.8);
   for(const z of [-.145,.11]){
     const disc=new THREE.Mesh(perforatedDisc(2.08,.69,.065),ceramic);
@@ -201,8 +201,8 @@ class BrakeScene {
     this.visible=true;
     this.running=true;
     this.exploded=false;
-    this.angleX=-.12;
-    this.angleY=-.24;
+    this.angleX=-.16;
+    this.angleY=-.29;
     this.targetX=this.angleX;
     this.targetY=this.angleY;
     this.dragging=false;
@@ -214,7 +214,7 @@ class BrakeScene {
     const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.6;
+    renderer.toneMappingExposure=0.96;
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.shadowMap.enabled=false;
     this.renderer=renderer;
@@ -224,18 +224,18 @@ class BrakeScene {
     const room=new RoomEnvironment();
     this.environment=pmrem.fromScene(room,0.04);
     this.scene.environment=this.environment.texture;
-    this.scene.environmentIntensity=.9;
+    this.scene.environmentIntensity=.51;
     room.dispose();pmrem.dispose();
-    this.scene.add(new THREE.AmbientLight(0xabc8f5,1.6));
-    const key=new THREE.DirectionalLight(0xe6f3ff,5.0);
+    this.scene.add(new THREE.AmbientLight(0xa7b9d0,.78));
+    const key=new THREE.DirectionalLight(0xe1eaf5,2.6);
     key.position.set(-3.5,5,7);
     this.scene.add(key);
-    const rim=new THREE.DirectionalLight(0x577ffe,7);
+    const rim=new THREE.DirectionalLight(0x5787e9,3.8);
     rim.position.set(5,2,-2.5);
     this.scene.add(rim);
-    const fill=new THREE.PointLight(0x769ff8,52,13,2);
+    const fill=new THREE.PointLight(0x759cda,24,13,2);
     fill.position.set(-4,-1,5);this.scene.add(fill);
-    const cool=new THREE.PointLight(0xf8faff,28,12,2);
+    const cool=new THREE.PointLight(0xf4f7fd,13,12,2);
     cool.position.set(3,4,4);this.scene.add(cool);
     this.camera=new THREE.PerspectiveCamera(34,1,.1,100);
     this.camera.position.set(0,.15,9.4);
@@ -290,7 +290,7 @@ class BrakeScene {
       this.angleX+=(this.targetX-this.angleX)*.065;
       this.brake.rotation.y=this.angleY;
       this.brake.rotation.x=this.angleX;
-      this.brake.rotation.z=-.065;
+      this.brake.rotation.z=-.085;
       const target=this.exploded?1:0;
       this.explodeAmount+=(target-this.explodeAmount)*.075;
       this.brake.userData.rotor.position.z=-this.explodeAmount*.42;
