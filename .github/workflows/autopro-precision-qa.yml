@@ -1,0 +1,63 @@
+name: AutoPro Precision live preview QA
+
+on:
+  push:
+    branches: ['design/autopro-precision-webgl-v2']
+    paths:
+      - 'cloudflare/precision-3d/tests/**'
+      - 'cloudflare/precision-3d/playwright.config.ts'
+      - '.github/workflows/autopro-precision-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-browser:
+    name: WebGL, cart, catalogue, no-checkout and responsive QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install reproducible existing dependencies
+        run: npm ci
+      - name: Browser platform dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Capture directory
+        run: mkdir -p cloudflare/precision-3d/screenshots
+      - name: Test live isolated Cloudflare preview
+        run: npx playwright test --config cloudflare/precision-3d/playwright.config.ts --workers=1
+      - name: Inspect screenshots and reject blank renders
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          for name in ("desktop.png","mobile.png"):
+              path=Path("cloudflare/precision-3d/screenshots")/name
+              img=Image.open(path).convert('RGB')
+              stats=ImageStat.Stat(img)
+              assert img.width>=390 and img.height>=844,(name,img.size)
+              assert max(stats.stddev)>24,(name,"screenshot appears blank")
+              print(name,img.size,path.stat().st_size,stats.stddev)
+          PY
+      - name: Upload inspected desktop/mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-precision-visual-review
+          path: cloudflare/precision-3d/screenshots/
+          if-no-files-found: ignore
+          retention-days: 10
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-precision-browser-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
