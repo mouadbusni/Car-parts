@@ -22,13 +22,23 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchReady, setSearchReady] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    // Read the landing-page search after hydration; do not fetch unfiltered results first.
+    const initialSearch = new URLSearchParams(window.location.search).get('search') || '';
+    setSearchQuery(initialSearch.trim().slice(0, 120));
+    setSearchReady(true);
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
 
     const { data: categoriesData } = await supabase
       .from('categories')
@@ -60,15 +70,20 @@ export default function ProductsPage() {
       query = query.order('rating', { ascending: false });
     }
 
-    const { data: productsData } = await query;
+    const { data: productsData, error: productsError } = await query;
 
-    if (productsData) setProducts(productsData);
+    if (productsError) {
+      setProducts([]);
+      setLoadError('Unable to load products. Please retry.');
+    } else {
+      setProducts(productsData || []);
+    }
     setLoading(false);
   }, [selectedCategory, sortBy, searchQuery]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (searchReady) loadData();
+  }, [loadData, searchReady]);
 
   return (
     <main className="min-h-screen bg-black">
@@ -92,7 +107,10 @@ export default function ProductsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
                 <Input
-                  placeholder="Search parts by name, brand, or vehicle..."
+                  type="search"
+                  aria-label="Search products by name"
+                  placeholder="Search parts by product name..."
+                  maxLength={120}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-12 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-500"
@@ -154,6 +172,11 @@ export default function ProductsPage() {
             </div>
           </motion.div>
 
+          {loadError && !loading && (
+            <div role="alert" className="mb-6 rounded-lg border border-orange-600/40 bg-orange-600/10 p-4 text-orange-100">
+              {loadError} <button type="button" className="underline underline-offset-4" onClick={loadData}>Retry</button>
+            </div>
+          )}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -245,7 +268,7 @@ export default function ProductsPage() {
             </div>
           )}
 
-          {!loading && products.length === 0 && (
+          {!loading && !loadError && products.length === 0 && (
             <div className="text-center py-16">
               <p className="text-neutral-400 text-lg mb-4">No products found</p>
               <Button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}>
