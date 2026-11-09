@@ -13,7 +13,7 @@ test('homepage search submits the product name to the catalog URL', () => {
   assert.match(hero, /encodeURIComponent\(search\)/);
   assert.match(hero, /\?search=/);
   assert.match(hero, /router\.push\(/);
-  assert.match(hero, /maxLength={120}/);
+  assert.ok(hero.includes('maxLength={120}'));
   assert.match(hero, /type="submit"/);
 });
 
