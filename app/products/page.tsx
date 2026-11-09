@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
+import { addToCart } from '@/lib/cart-store';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,6 +25,7 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchReady, setSearchReady] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const [cartNotice, setCartNotice] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -172,6 +174,11 @@ export default function ProductsPage() {
             </div>
           </motion.div>
 
+          {cartNotice && (
+            <div role="status" aria-live="polite" className="mb-5 rounded-lg border border-orange-700/40 bg-orange-900/20 px-4 py-3 text-sm text-orange-200">
+              {cartNotice} {cartNotice.startsWith('Added') && <Link href="/cart" className="ml-2 font-semibold underline">View cart</Link>}
+            </div>
+          )}
           {loadError && !loading && (
             <div role="alert" className="mb-6 rounded-lg border border-orange-600/40 bg-orange-600/10 p-4 text-orange-100">
               {loadError} <button type="button" className="underline underline-offset-4" onClick={loadData}>Retry</button>
@@ -198,15 +205,16 @@ export default function ProductsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
-                  <Link href={`/products/${product.slug}`}>
-                    <div
+                  <div
                       className={`group bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-orange-600/50 transition-all duration-300 ${
                         viewMode === 'list' ? 'flex' : ''
                       }`}
                     >
-                      <div
-                        className={`relative overflow-hidden bg-neutral-950 ${
-                          viewMode === 'list' ? 'w-64' : 'h-64'
+                      <Link
+                        href={`/products/${product.slug}`}
+                        aria-label={`View ${product.name}`}
+                        className={`relative block overflow-hidden bg-neutral-950 ${
+                          viewMode === 'list' ? 'w-36 shrink-0 sm:w-64' : 'h-64'
                         }`}
                       >
                         <div
@@ -218,16 +226,18 @@ export default function ProductsPage() {
                             <Badge className="bg-orange-600 text-white">SALE</Badge>
                           </div>
                         )}
-                      </div>
+                      </Link>
 
                       <div className="p-6 flex-1">
                         <Badge variant="outline" className="text-neutral-400 border-neutral-700 mb-2">
                           {product.brand}
                         </Badge>
 
-                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">
-                          {product.name}
-                        </h3>
+                        <Link href={`/products/${product.slug}`} className="block">
+                          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">
+                            {product.name}
+                          </h3>
+                        </Link>
 
                         <p className="text-neutral-400 text-sm mb-4 line-clamp-2">
                           {product.description}
@@ -255,14 +265,16 @@ export default function ProductsPage() {
                             </div>
                           </div>
 
-                          <Button className="bg-orange-600 hover:bg-orange-700 text-white" size="sm">
+                          <Button type="button" disabled={product.stock_quantity <= 0} onClick={() => {
+                            const result = addToCart(product, 1);
+                            setCartNotice(result.ok ? `Added ${product.name} to your cart.` : result.reason);
+                          }} className="bg-orange-600 hover:bg-orange-700 text-white disabled:cursor-not-allowed disabled:opacity-40" size="sm">
                             <ShoppingCart className="w-4 h-4 mr-2" />
                             Add
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </Link>
                 </motion.div>
               ))}
             </div>
