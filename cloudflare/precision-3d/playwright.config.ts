@@ -1,0 +1,27 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  timeout: 30000,
+  fullyParallel: false,
+  retries: 1,
+  workers: 1,
+  reporter: 'line',
+  use: {
+    baseURL: 'https://autopro-precision-preview.mouadbusni.workers.dev',
+    trace: 'on-first-retry',
+    launchOptions: {
+      args: [
+        '--enable-webgl',
+        '--use-gl=angle',
+        '--use-angle=swiftshader',
+        '--enable-unsafe-swiftshader',
+        '--disable-dev-shm-usage',
+      ],
+    },
+  },
+  projects: [
+    { name:'desktop', use:{...devices['Desktop Chrome'],viewport:{width:1440,height:900}}},
+    { name:'mobile', use:{...devices['Pixel 5'],viewport:{width:390,height:844}}},
+  ],
+});
