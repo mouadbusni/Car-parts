@@ -6,12 +6,15 @@ import { Product } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useState } from 'react';
+import { addToCart } from '@/lib/cart-store';
 
 interface FeaturedProductsProps {
   products: Product[];
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
+  const [cartNotice, setCartNotice] = useState('');
   return (
     <section className="py-24 bg-gradient-to-b from-black to-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,6 +39,11 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </p>
         </motion.div>
 
+        {cartNotice && (
+          <div role="status" aria-live="polite" className="mx-auto mb-6 max-w-2xl rounded-lg border border-orange-800/40 bg-orange-950/20 p-3 text-center text-sm text-orange-200">
+            {cartNotice} {cartNotice.startsWith('Added') && <Link href="/cart" className="ml-2 font-semibold underline">View cart</Link>}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product, index) => (
             <motion.div
@@ -45,8 +53,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Link href={`/products/${product.slug}`}>
-                <div className="group relative bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-orange-600/50 transition-all duration-500 h-full flex flex-col">
+              <div className="group relative bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-orange-600/50 transition-all duration-500 h-full flex flex-col">
                   {product.compare_price && (
                     <div className="absolute top-4 right-4 z-10">
                       <Badge className="bg-orange-600 text-white border-0">
@@ -55,7 +62,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     </div>
                   )}
 
-                  <div className="relative h-64 overflow-hidden bg-neutral-950">
+                  <Link href={`/products/${product.slug}`} aria-label={`View ${product.name}`} className="relative block h-64 overflow-hidden bg-neutral-950">
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                       style={{
@@ -63,7 +70,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent" />
-                  </div>
+                  </Link>
 
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="mb-2">
@@ -72,9 +79,11 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                       </Badge>
                     </div>
 
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors line-clamp-2">
-                      {product.name}
-                    </h3>
+                    <Link href={`/products/${product.slug}`}>
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors line-clamp-2">
+                        {product.name}
+                      </h3>
+                    </Link>
 
                     <p className="text-neutral-400 text-sm mb-4 line-clamp-2 flex-1">
                       {product.description}
@@ -103,7 +112,13 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                       </div>
 
                       <Button
-                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                        type="button"
+                        disabled={product.stock_quantity <= 0}
+                        onClick={() => {
+                          const result = addToCart(product, 1);
+                          setCartNotice(result.ok ? `Added ${product.name} to your cart.` : result.reason);
+                        }}
+                        className="bg-orange-600 hover:bg-orange-700 text-white disabled:cursor-not-allowed disabled:opacity-40"
                         size="sm"
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
@@ -118,7 +133,6 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     )}
                   </div>
                 </div>
-              </Link>
             </motion.div>
           ))}
         </div>

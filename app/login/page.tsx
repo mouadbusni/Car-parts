@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import type { BaseSyntheticEvent } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,50 +10,49 @@ import { Label } from '@/components/ui/label';
 
 import { motion } from 'framer-motion';
 import { LogIn } from 'lucide-react';
-import Link from 'next/link';
+
 
 type FormData = {
   email: string;
   password: string;
 };
 
-const DEFAULT_ADMIN_EMAIL = 'admin@admin.com';
-const DEFAULT_ADMIN_PASSWORD = '123456';
-
 export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
   const router = useRouter();
 
-  const persistAuthCookie = (email: string, token?: string) => {
-    if (typeof window === 'undefined') return;
-    const maxAge = 60 * 60 * 24 * 7;
-    const payload = encodeURIComponent(JSON.stringify({ email, token }));
-    document.cookie = `sb-auth-token=${payload}; path=/; max-age=${maxAge}; SameSite=Lax`;
-  };
+  const [loginError, setLoginError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const onSubmit = async (data: FormData) => {
-    if (data.email === DEFAULT_ADMIN_EMAIL && data.password === DEFAULT_ADMIN_PASSWORD) {
-      persistAuthCookie(data.email);
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      router.push('/admin');
-      return;
+  const onSubmit = async (credentials: FormData) => {
+    setSubmitting(true);
+    setLoginError('');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword(credentials);
+      if (error || !data.session) {
+        setLoginError('Invalid credentials or unavailable authentication service.');
+        return;
+      }
+      // The server independently re-verifies the token and checks trusted app_metadata.role.
+      const session = await fetch('/api/admin-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify({ access_token: data.session.access_token }),
+      });
+      if (!session.ok) {
+        await supabase.auth.signOut();
+        setLoginError('This account does not have administrator access.');
+        return;
+      }
+      router.replace('/admin');
+      router.refresh();
+    } catch {
+      setLoginError('Unable to complete sign-in right now.');
+    } finally {
+      setSubmitting(false);
     }
-    const { data: authData, error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
-    if (error) {
-      alert('Login failed: ' + error.message);
-      return;
-    }
-    persistAuthCookie(data.email, authData?.session?.access_token ?? undefined);
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    router.push('/admin');
-  };
-
-  const handleButtonClick = (event: BaseSyntheticEvent) => {
-    event.preventDefault();
-    void handleSubmit(onSubmit)(event);
   };
 
   return (
@@ -106,7 +105,7 @@ export default function LoginPage() {
               Sign in to access your account
             </motion.p>
 
-            <form action="#" method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -149,12 +148,13 @@ export default function LoginPage() {
                 transition={{ delay: 0.7, duration: 0.6 }}
                 className="pt-2"
               >
+                {loginError && <p role="alert" className="mb-3 text-sm text-orange-400">{loginError}</p>}
                 <Button
                   type="submit"
-                  onClick={handleButtonClick}
-                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
+                  disabled={submitting}
+                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Sign In
+                  {submitting ? 'Signing in…' : 'Sign In'}
                 </Button>
               </motion.div>
             </form>
@@ -165,12 +165,7 @@ export default function LoginPage() {
               transition={{ delay: 0.8, duration: 0.6 }}
               className="mt-6 pt-6 border-t border-neutral-800 text-center text-sm text-neutral-400"
             >
-              <p>
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-semibold">
-                  Sign up
-                </Link>
-              </p>
+              <p>Administrator access only. Contact the site owner for an account.</p>
             </motion.div>
           </div>
         </motion.div>

@@ -12,59 +12,35 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const getCookieUser = () => {
-    if (typeof document === 'undefined') return null;
-    const entry = document.cookie.split('; ').find((value) => value.startsWith('sb-auth-token='));
-    if (!entry) return null;
-    try {
-      const payload = JSON.parse(decodeURIComponent(entry.split('=')[1]));
-      if (payload?.email) {
-        return { email: payload.email };
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  };
-
   useEffect(() => {
-    const hydrateUser = async () => {
-      const cookieUser = getCookieUser();
-      if (cookieUser) {
-        setUser(cookieUser);
-        setLoading(false);
-        return;
-      }
-
+    let active = true;
+    const checkAdmin = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          setLoading(false);
-          return;
+        const { data, error } = await supabase.auth.getUser();
+        const verified = !error && data.user?.app_metadata?.role === 'admin';
+        if (!active) return;
+        if (verified) {
+          setUser({ email: data.user?.email });
+        } else {
+          router.replace('/login');
         }
-      } catch {}
-
-      const fallbackUser = getCookieUser();
-      if (fallbackUser) {
-        setUser(fallbackUser);
-      } else {
-        router.push('/login');
+      } catch {
+        if (active) router.replace('/login');
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     };
-
-    hydrateUser();
+    void checkAdmin();
+    return () => { active = false; };
   }, [router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    if (typeof window !== 'undefined') {
-      document.cookie = 'sb-auth-token=; path=/; max-age=0; SameSite=Lax';
-      document.cookie = 'admin-product-local-store=; path=/; max-age=0; SameSite=Lax';
-    }
+    // Clear the server-issued HttpOnly session even if Supabase sign-out fails.
+    await fetch('/api/admin-session', { method: 'DELETE', credentials: 'same-origin' }).catch(() => null);
+    await supabase.auth.signOut().catch(() => null);
     setUser(null);
-    router.push('/login');
+    router.replace('/login');
+    router.refresh();
   };
 
   if (loading) {
@@ -74,6 +50,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="flex h-screen bg-gray-100">
