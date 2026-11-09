@@ -23,7 +23,7 @@ jobs:
       - name: Validate Cloudflare Worker API
         run: node --test tests/autopro-cloudflare-api.test.mjs
       - name: Verify D1 SQLite constraints
-        run: python3 -m unittest discover -s tests -p autopro-d1-schema.test.py -v
+        run: python3 -m unittest discover -s tests -p 'test_autopro_d1_schema.py' -v
       - name: TypeScript regression
         run: |
           npm ci
