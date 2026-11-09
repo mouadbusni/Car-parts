@@ -1,13 +1,14 @@
-name: AutoPro focused source review
+name: AutoPro cart and navigation review
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'components/header.tsx'
-      - 'components/hero-section.tsx'
-      - 'app/products/page.tsx'
-      - 'tests/autopro-audit.test.mjs'
+      - 'components/**'
+      - 'app/cart/**'
+      - 'app/products/**'
+      - 'lib/cart-store.ts'
+      - 'tests/autopro-*'
       - '.github/workflows/autopro-review.yml'
   workflow_dispatch:
 
@@ -16,19 +17,34 @@ permissions:
 
 jobs:
   audit:
-    name: Search, navigation and TypeScript checks
+    name: Source, TypeScript and cart browser QA
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
       - name: Install locked dependencies
         run: npm ci
       - name: Verify source regressions
-        run: node --test tests/autopro-audit.test.mjs
+        run: node --test tests/autopro-audit.test.mjs tests/autopro-cart-source.test.mjs
       - name: TypeScript validation
         run: npm run typecheck
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run real browser cart flow with mock Supabase reads
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://autopro-test.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: autopro-qa-public-mock-key
+        run: npx playwright test tests/autopro-cart.spec.ts --project=chromium --project="Mobile Chrome" --workers=1 --reporter=line
+      - name: Upload browser trace on failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-cart-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
