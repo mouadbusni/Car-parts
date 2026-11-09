@@ -45,7 +45,7 @@ test('cart add, quantity, persistence and remove work while checkout stays disab
   await page.reload();
   await expect(page.getByTestId('cart-item')).toHaveCount(1);
   await page.getByRole('button',{name:'Increase Vented Performance Rotor quantity'}).click();
-  await expect(page.getByText('$378.00')).toHaveCount(2);
+  await expect(page.locator('.cart-summary').getByText('$378.00')).toHaveCount(2);
   await page.getByRole('button',{name:'REMOVE'}).click();
   await expect(page.getByTestId('empty-cart')).toBeVisible();
   await expect(page.locator('#header-count')).toBeHidden();
