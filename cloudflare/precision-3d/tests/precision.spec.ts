@@ -70,6 +70,21 @@ test('product detail and local cart persist and remain non-purchasable',async({p
   await expect(page.locator('[data-testid="empty-cart"]')).toBeVisible();
 });
 
+test('all catalogue artwork uses native blue-steel colors, not recycled orange hues',async({page})=>{
+  await page.goto('/catalog');
+  const first=page.locator('.product-art svg').first();
+  await expect(first).toBeVisible();
+  const render=await first.evaluate(svg=>({
+    source:svg.outerHTML,
+    filter:getComputedStyle(svg).filter,
+  }));
+  expect(render.source).toContain('#6ea5f4');
+  for(const legacyColor of ['#ff6b22','#fb702a','#ff6826','#ffc39f']){
+    expect(render.source.toLowerCase()).not.toContain(legacyColor);
+  }
+  expect(render.filter).not.toContain('hue-rotate');
+});
+
 test('real D1 read API remains alive with no real products',async({request})=>{
   const response=await request.get('/api/health');
   expect(response.ok()).toBeTruthy();
