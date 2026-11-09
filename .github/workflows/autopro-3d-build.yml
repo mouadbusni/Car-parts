@@ -1,0 +1,48 @@
+name: AutoPro Precision 3D engine bundle
+on:
+  push:
+    branches: ['design/autopro-precision-webgl-v2']
+    paths:
+      - 'cloudflare/precision-3d/brake-scene.js'
+      - '.github/workflows/autopro-3d-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Three.js and build tool without changing project dependencies
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund three@0.180.0 esbuild@0.25.12
+      - name: Bundle real Three.js geometry and PBR renderer into same-origin script
+        run: |
+          ./node_modules/.bin/esbuild cloudflare/precision-3d/brake-scene.js \
+            --bundle --format=iife --target=es2020 --minify \
+            --outfile=cloudflare/precision-3d/scene.bundle.js
+          node --check cloudflare/precision-3d/scene.bundle.js
+          test $(wc -c < cloudflare/precision-3d/scene.bundle.js) -gt 250000
+          test $(wc -c < cloudflare/precision-3d/scene.bundle.js) -lt 1300000
+          if grep -qE 'from .three.|import .three.' cloudflare/precision-3d/scene.bundle.js; then
+            echo "::error::Three.js bundling left external dependencies"
+            exit 1
+          fi
+          sha256sum cloudflare/precision-3d/scene.bundle.js
+      - name: Commit only compiled production 3D asset
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloudflare/precision-3d/scene.bundle.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "build(autopro): bundle pinned Three.js scene for browser preview"
+          git restore --worktree .
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
