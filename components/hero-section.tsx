@@ -1,11 +1,22 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Search, TrendingUp, Shield, Zap } from 'lucide-react';
+import { Search, ListFilter, ClipboardList, Zap } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function HeroSection() {
+  const router = useRouter();
+  const [partName, setPartName] = useState('');
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const search = partName.trim();
+    router.push(search ? `/products?search=${encodeURIComponent(search)}` : '/products');
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-black via-neutral-900 to-black">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAgNHYyaDJ2LTJoLTJ6bS0yIDJ2Mmgydi0yaC0yem0wLTR2Mmgydi0yaC0yem0yLTJ2LTJoLTJ2Mmgyem0wLTRoLTJ2Mmgydi0yem0yIDJ2LTJoLTJ2Mmgyem0wIDR2LTJoLTJ2Mmgyem0yLTJ2Mmgydi0yaC0yem0wLTR2Mmgydi0yaC0yem0tMi0ydjJoMnYtMmgtMnptMC00djJoMnYtMmgtMnptMiAydi0yaC0ydjJoMnptMCA0di0yaC0ydjJoMnptMiAydi0yaC0ydjJoMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30" />
@@ -59,18 +70,25 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="max-w-2xl mx-auto mb-16"
           >
-            <div className="flex gap-3">
+            <form role="search" onSubmit={submitSearch} className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <label htmlFor="autopro-hero-part-search" className="sr-only">Search parts by product name</label>
+                <Search aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
                 <Input
-                  placeholder="Search by part, vehicle, or VIN..."
+                  id="autopro-hero-part-search"
+                  name="search"
+                  type="search"
+                  value={partName}
+                  onChange={(event) => setPartName(event.target.value)}
+                  maxLength={120}
+                  placeholder="Search auto parts by product name..."
                   className="pl-12 h-14 bg-neutral-900/50 border-neutral-800 text-white placeholder:text-neutral-500 focus:border-orange-600 focus:ring-orange-600/20"
                 />
               </div>
-              <Button className="h-14 px-8 bg-orange-600 hover:bg-orange-700 text-white font-semibold">
+              <Button type="submit" className="h-14 px-8 bg-orange-600 hover:bg-orange-700 text-white font-semibold">
                 Search
               </Button>
-            </div>
+            </form>
           </motion.div>
 
           <motion.div
@@ -80,9 +98,9 @@ export default function HeroSection() {
             className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
           >
             {[
-              { icon: TrendingUp, title: '150K+', desc: 'Premium Parts' },
-              { icon: Shield, title: '100%', desc: 'Quality Guaranteed' },
-              { icon: Zap, title: '24/7', desc: 'Expert Support' },
+              { icon: Search, title: 'PART SEARCH', desc: 'Find products by name' },
+              { icon: ListFilter, title: 'SMART FILTERS', desc: 'Browse categories and sort' },
+              { icon: ClipboardList, title: 'PART DETAILS', desc: 'Review product information' },
             ].map((stat, index) => (
               <motion.div
                 key={index}
