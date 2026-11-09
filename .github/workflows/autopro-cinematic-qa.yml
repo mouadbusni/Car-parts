@@ -1,0 +1,63 @@
+name: AutoPro cinematic live website QA
+
+on:
+  push:
+    branches: ['design/autopro-cinematic-photo-v3']
+    paths:
+      - 'cloudflare/cinematic/playwright.config.ts'
+      - 'cloudflare/cinematic/tests/**'
+      - '.github/workflows/autopro-cinematic-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    name: Live photo, catalog, cart and responsive QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked existing dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Prepare capture directory
+        run: mkdir -p cloudflare/cinematic/screenshots
+      - name: Test actual Cloudflare website
+        run: npx playwright test --config cloudflare/cinematic/playwright.config.ts --workers=1
+      - name: Inspect image resolution, reject blank screenshots
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          for name in ('desktop.jpg','mobile.jpg'):
+              f=Path('cloudflare/cinematic/screenshots')/name
+              im=Image.open(f).convert('RGB')
+              stat=ImageStat.Stat(im)
+              assert im.width>=390 and im.height>=844,(name,im.size)
+              assert max(stat.stddev)>25,(name,'Blank or low-content screenshot')
+              print(name,im.size,f.stat().st_size,stat.stddev)
+          PY
+      - name: Upload verified full-page visual captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-cinematic-desktop-mobile
+          path: cloudflare/cinematic/screenshots/
+          if-no-files-found: ignore
+          retention-days: 10
+      - name: Upload browser traces if a test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-cinematic-failure-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
