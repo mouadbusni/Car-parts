@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 async function loadAllImages(page){
+  // The catalog and home components render asynchronously after the D1 API resolves.
+  await expect(page.locator('[data-version="cinematic-photo-v3"]')).toBeVisible();
   await page.evaluate(async()=>{
     for(const img of document.querySelectorAll('img')){
       img.loading='eager';
