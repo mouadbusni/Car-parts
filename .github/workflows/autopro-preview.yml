@@ -57,6 +57,8 @@ jobs:
           git add cloudflare/preview-site/screenshots/desktop.jpg cloudflare/preview-site/screenshots/mobile.jpg
           if ! git diff --cached --quiet; then
             git commit -m "docs(autopro): capture tested desktop and mobile Cloudflare preview"
+            git fetch origin "${GITHUB_REF_NAME}"
+            git rebase "origin/${GITHUB_REF_NAME}"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
       - name: Upload failure traces
