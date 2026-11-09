@@ -5,10 +5,12 @@ import { ShoppingCart, User, Menu, X, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { cartItemCount, useCart } from '@/lib/cart-store';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const cartCount = cartItemCount(useCart());
   const navItems = [
     { label: 'Products', href: '/products' },
     { label: 'Categories', href: '/categories' },
@@ -62,16 +64,14 @@ export default function Header() {
 
           <div className="flex items-center gap-4">
             <Link href="/cart" aria-label="View shopping cart">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-neutral-300 hover:text-white hover:bg-neutral-800"
-              >
+              <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-600 rounded-full text-xs text-white flex items-center justify-center">
-                  0
-                </span>
-              </Button>
+                {cartCount > 0 && (
+                  <span data-testid="header-cart-count" aria-label={`${cartCount} items in cart`} className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-600 px-1 text-xs text-white">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </span>
             </Link>
 
             <Link href="/login" aria-label="Sign in">
