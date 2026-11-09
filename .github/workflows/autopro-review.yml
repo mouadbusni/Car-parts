@@ -13,6 +13,8 @@ on:
       - 'middleware.ts'
       - 'scripts/create-admin.js'
       - 'ADMIN_SETUP.md'
+      - 'supabase/migrations/**'
+      - 'tests/autopro-order-rls.sh'
       - 'lib/cart-store.ts'
       - 'lib/admin-auth.ts'
       - 'tests/autopro-*'
@@ -55,3 +57,35 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  order-permissions:
+    name: Simulated PostgreSQL 17 RLS protection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: autopro_ci_only
+          POSTGRES_DB: autopro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d autopro_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: autopro_ci_only
+      PGDATABASE: autopro_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y postgresql-client; }
+      - name: Exercise schema and deny forged order writes
+        run: bash tests/autopro-order-rls.sh
