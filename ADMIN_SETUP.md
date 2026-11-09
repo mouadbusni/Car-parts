@@ -1,78 +1,36 @@
-# Admin Account Setup
+# AutoPro administrator setup (review branch)
 
-## Quick Start
+> **Security warning:** Previous versions contained a hard-coded administrator login and trusted a browser-editable cookie. Do not deploy those versions. If an administrator was provisioned with the previously documented default password, rotate that password and revoke its active sessions immediately.
 
-### Admin Credentials
-- **Email**: admin@admin.com
-- **Password**: 123456
+## Backend prerequisite
 
-## Creating the Admin Account
+Connect an AutoPro-specific Supabase project and configure:
 
-### Option 1: Using Seed Script (Recommended)
+- `NEXT_PUBLIC_SUPABASE_URL`: AutoPro's public Supabase project endpoint
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase publishable / public key (never service role)
+- `SUPABASE_SERVICE_ROLE_KEY`: **server-only** for one-time administrator creation
+- `ADMIN_EMAIL`: email address chosen by the owner
+- `ADMIN_PASSWORD`: owner-generated, unique strong password (16+ characters, upper/lowercase letters, numbers, and symbols)
 
-1. **Get your Supabase Service Role Key**:
-   - Go to your Supabase project dashboard
-   - Navigate to Settings → API
-   - Copy your `service_role` key (keep this secret!)
+Do **not** commit `.env.local`, `SUPABASE_SERVICE_ROLE_KEY` or any password to GitHub.
 
-2. **Add to `.env.local`** (create this file if it doesn't exist):
-   ```
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-   ```
+## Provision the first administrator
 
-3. **Run the seed script**:
-   ```bash
-   npm run seed:admin
-   ```
-   
-   Expected output:
-   ```
-   Creating admin user...
-   ✅ Admin user created successfully!
-   Email: admin@admin.com
-   Password: 123456
-   ```
+1. Verify that the AutoPro project is the one you intend to configure (not another brand's Supabase project).
+2. Use the Supabase dashboard to create the administrator with a unique password **and** set trusted `app_metadata.role` to `admin`, or use the repository's `npm run seed:admin` command with all environment variables set.
+3. Remove the server-only service role key from any developer device or environment that doesn't require administrator provisioning.
+4. Open `/login` and sign in. The Next.js server checks the Supabase Auth token and trusted role, then issues a short-lived `HttpOnly` cookie for protected routes.
+5. Verify `/admin` and `/dashboard` deny access to a signed-out user and to a normal non-admin user.
 
-### Option 2: Manual Setup via Supabase Dashboard
+## Important boundaries
 
-1. Go to your Supabase project dashboard
-2. Navigate to Authentication → Users
-3. Click "Add user"
-4. Enter:
-   - Email: `admin@admin.com`
-   - Password: `123456`
-5. Confirm email
-6. Save
+- The browser cannot grant itself admin access by editing a cookie or its own user metadata.
+- The admin route requires a verified Supabase Auth session and trusted `app_metadata.role=admin`.
+- Expired access tokens require signing in again; automatic server-side token refresh is not configured in this initial security fix.
+- Do not assume that access to the admin UI grants database writing privileges. Product mutations must be separately authorized by Supabase row-level security or server-only APIs.
+- The legacy orders schema permits authenticated clients to insert orders with client-controlled totals. **Do not enable checkout** until order creation, price/stock checks and authorization are moved to a trusted server-side transaction.
+- The original AutoPro Supabase project is not currently accessible through the connected account, so end-to-end admin provisioning and role enforcement cannot yet be verified against a live database.
 
-## Testing the Admin Login
+## Local review
 
-1. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-2. Navigate to http://localhost:3000/login
-
-3. Enter credentials:
-   - Email: `admin@admin.com`
-   - Password: `123456`
-   - Role: Select "Admin"
-
-4. Click "Sign In" - you should be redirected to the admin dashboard
-
-## Running Tests
-
-```bash
-npm test
-```
-
-Or with UI:
-```bash
-npm run test:ui
-```
-
-## Notes
-
-- The admin account will have full access to `/admin/*` routes
-- All other routes (`/admin/*`) are protected and require authentication
-- Without authentication, users are redirected to the login page
+Run `npm run typecheck` and `node --test tests/autopro-auth-source.test.mjs`. The pull request also runs browser checks for blocked routes without relying on a real administrator account.
