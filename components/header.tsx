@@ -1,19 +1,25 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ShoppingCart, User, Menu, Wrench } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navItems = [
+    { label: 'Products', href: '/products' },
+    { label: 'Categories', href: '/categories' },
+  ];
 
-  if (typeof window !== 'undefined') {
-    window.addEventListener('scroll', () => {
-      setIsScrolled(window.scrollY > 50);
-    });
-  }
+  useEffect(() => {
+    const syncScroll = () => setIsScrolled(window.scrollY > 50);
+    syncScroll();
+    window.addEventListener('scroll', syncScroll, { passive: true });
+    return () => window.removeEventListener('scroll', syncScroll);
+  }, []);
 
   return (
     <motion.header
@@ -43,19 +49,19 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            {['Products', 'Categories', 'Brands', 'Support'].map((item) => (
+            {navItems.map((item) => (
               <Link
-                key={item}
-                href={`/${item.toLowerCase()}`}
+                key={item.href}
+                href={item.href}
                 className="text-neutral-300 hover:text-white transition-colors font-medium"
               >
-                {item}
+                {item.label}
               </Link>
             ))}
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link href="/cart">
+            <Link href="/cart" aria-label="View shopping cart">
               <Button
                 variant="ghost"
                 size="icon"
@@ -68,7 +74,7 @@ export default function Header() {
               </Button>
             </Link>
 
-            <Link href="/login">
+            <Link href="/login" aria-label="Sign in">
               <Button
                 variant="ghost"
                 size="icon"
@@ -79,15 +85,34 @@ export default function Header() {
             </Link>
 
             <Button
+              type="button"
               variant="ghost"
               size="icon"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="autopro-mobile-menu"
+              onClick={() => setIsMenuOpen((open) => !open)}
               className="md:hidden text-neutral-300 hover:text-white hover:bg-neutral-800"
             >
-              <Menu className="w-5 h-5" />
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
       </div>
+      {isMenuOpen && (
+        <nav id="autopro-mobile-menu" aria-label="Mobile navigation" className="md:hidden border-t border-neutral-800 bg-neutral-950/95 px-6 py-4 backdrop-blur-xl">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setIsMenuOpen(false)}
+              className="block rounded-md px-3 py-3 text-neutral-200 hover:bg-neutral-800 hover:text-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </motion.header>
   );
 }
