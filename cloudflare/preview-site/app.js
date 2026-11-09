@@ -100,6 +100,24 @@ function artSvg(kind){
   if(kind==='cooler')return `<svg viewBox="0 0 360 260" role="img" aria-label="Technical illustration of an intercooler"><defs><linearGradient id="i1" x1="0" x2="1"><stop stop-color="#4a4c52"/><stop offset=".45" stop-color="#b5b6bc"/><stop offset="1" stop-color="#2e3037"/></linearGradient></defs><g transform="rotate(-9 180 130)"><rect x="49" y="65" width="263" height="141" rx="10" fill="#191b1e" stroke="#b0b1b5" stroke-width="10"/><rect x="68" y="80" width="223" height="112" fill="#45484d"/>${Array.from({length:21},(_,i)=>`<path d="M${74+i*10} 83V189" stroke="${i%2?'#111216':'#a5a9af'}" stroke-width="5"/>`).join('')}<path d="M22 107H54M306 160H340" stroke="#888b91" stroke-width="28" stroke-linecap="round"/><path d="M53 68V200M311 68V200" stroke="#588dc4" stroke-width="5"/></g></svg>`;
   return `<svg viewBox="0 0 360 260" role="img" aria-label="Technical illustration of an exhaust"><defs><linearGradient id="e1" x1="0" x2="1"><stop stop-color="#2b2c31"/><stop offset=".27" stop-color="#bdbdc1"/><stop offset=".6" stop-color="#414249"/><stop offset="1" stop-color="#c5c5c5"/></linearGradient></defs><g transform="rotate(-19 180 130)"><path d="M55 165C102 147 133 140 187 133" fill="none" stroke="url(#e1)" stroke-width="52" stroke-linecap="round"/><path d="M185 135L280 109" stroke="url(#e1)" stroke-width="75" stroke-linecap="round"/><ellipse cx="280" cy="109" rx="45" ry="50" fill="#777981" stroke="#cac9cc" stroke-width="13"/><ellipse cx="281" cy="108" rx="29" ry="33" fill="#0b0b0d" stroke="#6c99cc" stroke-width="5"/><path d="M200 129L231 120" stroke="#78afe4" stroke-width="4"/></g></svg>`;
 }
+const PHOTOS={hero:'/media/hero.webp',brakes:'/media/brakes.webp',wheels:'/media/wheels.webp',lighting:'/media/lighting.webp',drive:'/media/drive.webp'};
+function photoFor(product){
+  const category=String(product.category_id||'').toLowerCase();
+  const art=String(product.art||'');
+  if(art==='rotor'||art==='caliper'||category.includes('brake'))return PHOTOS.brakes;
+  if(art==='coilover'||category.includes('suspension'))return PHOTOS.wheels;
+  if(art==='filter'||art==='cooler'||category.includes('engine'))return PHOTOS.lighting;
+  if(art==='exhaust'||category.includes('exhaust'))return PHOTOS.drive;
+  return PHOTOS.drive;
+}
+function photoForCategory(category){
+  const id=String(category.id||'').toLowerCase();
+  if(id.includes('brake'))return PHOTOS.brakes;
+  if(id.includes('suspension'))return PHOTOS.wheels;
+  if(id.includes('engine'))return PHOTOS.lighting;
+  if(id.includes('exhaust'))return PHOTOS.drive;
+  return PHOTOS.hero;
+}
 function artwork(product){return artSvg(product.art||(/brake|rotor/i.test(product.name)?'rotor':/suspension|coilover/i.test(product.name)?'coilover':/filter/i.test(product.name)?'filter':/exhaust/i.test(product.name)?'exhaust':'cooler'))}
 function intro(eyebrow,title,lead){return `<section class="page-top"><div class="container"><div class="bread"><a href="/" data-nav>HOME</a> &nbsp;/&nbsp; <b>${esc(eyebrow)}</b></div><div class="eyebrow">${esc(eyebrow)}</div><h1>${title}</h1><p>${esc(lead)}</p></div></section>`;}
 function notice(){
@@ -107,65 +125,95 @@ function notice(){
   if(demoMode)return `<div class="notice" role="status"><strong>DEMO CATALOGUE · EXAMPLE PRODUCTS ONLY.</strong> AutoPro's Cloudflare D1 database is connected but contains no verified product inventory. Every visible item and price is a demonstration—not an offer for sale. <button type="button" data-toggle-demo style="color:#c8e3ff;text-decoration:underline;border:0;background:none;padding:0">${showDemo?'Hide demo items':'Show demo items'}</button></div>`;
   return `<div class="notice" role="status"><strong>STAGING MODE.</strong> Product listings come from the AutoPro D1 API. Prices and stock are not validated for checkout; orders remain disabled.</div>`;
 }
-function card(p,i=0){return `<article class="product-card" data-testid="product-card"><a data-nav href="/product/${encodeURIComponent(p.slug)}" class="product-art" aria-label="View ${esc(p.name)}">${p.demo?'<span class="product-badge">DEMO PRODUCT</span>':'<span class="product-badge">PREVIEW ONLY</span>'}${artwork(p)}<span class="product-code">${String(i+1).padStart(2,'0')} / AP</span></a><div class="product-content"><span class="product-brand">${esc(p.brand||'AUTOPRO')}</span><a data-nav href="/product/${encodeURIComponent(p.slug)}"><h3>${esc(p.name)}</h3></a><p>${esc(p.description||'View component specifications and details.')}</p><div class="product-bottom"><div><div class="price">${money(p.price)}</div><div class="price-note">${p.demo?'ILLUSTRATIVE PRICE':'PRICE NOT VERIFIED'}</div></div><button type="button" class="btn btn-primary" data-add="${esc(p.slug)}" aria-label="Add ${esc(p.name)} to preview selection">ADD <span class="arrow">+</span></button></div></div></article>`;}
-function categoryCard(c,i){const symbol=String(i+1).padStart(2,'0');return `<a href="/catalog?category=${encodeURIComponent(c.id)}" data-nav class="category-card"><span class="category-number">CATEGORY / ${symbol}</span><span class="category-symbol">${symbol}</span><h3>${esc(c.name)}</h3><span class="category-link">${esc(c.description||'Explore component listings')} <b>↗</b></span></a>`;}
+function card(p,i=0){
+  const image=photoFor(p);
+  return `<article class="product-card" data-testid="product-card">
+    <a data-nav href="/product/${encodeURIComponent(p.slug)}" class="product-art" aria-label="View ${esc(p.name)}">
+      <img src="${image}" alt="Automotive editorial photo used for the component preview, not an image of the actual item" loading="lazy" width="900" height="1050">
+      <span class="product-badge">${p.demo?'DEMO / NOT FOR SALE':'STAGING CATALOG'}</span>
+      <span class="product-code">REF / ${String(i+1).padStart(2,'0')}</span>
+    </a>
+    <div class="product-content">
+      <span class="product-brand">${esc(p.brand||'AUTOPRO')}</span>
+      <a data-nav href="/product/${encodeURIComponent(p.slug)}"><h3>${esc(p.name)}</h3></a>
+      <p>${esc(p.description||'Explore the component and its technical information.')}</p>
+      <div class="product-bottom"><div><div class="price">${money(p.price)}</div><div class="price-note">${p.demo?'ILLUSTRATIVE / NOT A QUOTE':'STAGING AMOUNT / UNVERIFIED'}</div></div>
+        <button type="button" class="btn btn-primary" data-add="${esc(p.slug)}" aria-label="Add ${esc(p.name)} to preview selection">SAVE <span class="arrow">+</span></button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function categoryCard(c,i){
+ const number=String(i+1).padStart(2,'0');
+ return `<a href="/catalog?category=${encodeURIComponent(c.id)}" data-nav class="category-card" aria-label="Browse ${esc(c.name)}">
+    <img class="category-image" src="${photoForCategory(c)}" alt="Automotive editorial detail photograph" loading="lazy" width="900" height="1000">
+    <span class="category-number">SYSTEM / ${number}</span><span class="category-symbol">${number}</span>
+    <h3>${esc(c.name)}</h3><span class="category-link">EXPLORE SYSTEM <b>↗</b></span>
+  </a>`;
+}
+
 function home(){
   const featured=activeProducts().slice(0,3);
-  main.innerHTML=`<section class="hero" data-version="precision-3d">
-  <div class="container hero-inner">
-    <div class="hero-copy">
-      <div class="hero-kicker"><strong>AP / 001</strong> &nbsp;—&nbsp; ENGINEERING STUDIO / INTERACTIVE SYSTEMS</div>
-      <h1 class="hero-title">Precision<br>in every<br><em>detail.</em></h1>
-      <p class="hero-text">Discover the components behind the drive. A new way to explore automotive engineering, with real 3D inspection, technical product views and a more considered catalogue.</p>
-      <div class="hero-actions">
-        <a data-nav class="btn btn-primary" href="/catalog">EXPLORE COMPONENTS <span class="arrow" aria-hidden="true">↗</span></a>
-        <a data-nav class="btn btn-outline" href="/about">OUR APPROACH <span class="arrow" aria-hidden="true">→</span></a>
+  const systems=activeCategories().slice(0,3);
+  main.innerHTML=`
+  <section class="hero" data-version="cinematic-photo-v3">
+    <div class="hero-background"><img src="${PHOTOS.drive}" alt="Silver performance coupe photographed at night in an urban environment" width="1400" height="930" fetchpriority="high"></div>
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <div class="hero-kicker">AUTOPRO <span>/</span> PERFORMANCE COMPONENTS — STUDIO 001</div>
+        <h1 class="hero-title">Built for<br>what <em>moves</em><br><span class="stroke">you.</span></h1>
+        <p class="hero-text">Precision lives in the details. Discover the parts, the engineering, and the passion behind every drive.</p>
+        <div class="hero-actions">
+          <a data-nav href="/catalog" class="btn btn-primary">EXPLORE THE PARTS <span class="arrow" aria-hidden="true">↗</span></a>
+          <a data-nav href="/about" class="btn btn-outline">DISCOVER AUTOPRO <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-note">CURATED AUTOMOTIVE EXPERIENCE / DESIGN PREVIEW ONLY</div>
       </div>
-      <div class="hero-note">INTERACTIVE ENGINEERING STUDY &nbsp;/&nbsp; NO ORDERS OR PAYMENTS</div>
+      <div class="hero-bottom"><span>AP/001 — AUTOMOTIVE DESIGN STUDY</span><span class="scroll-indicator">SCROLL TO DISCOVER</span></div>
     </div>
-    <div class="hero-art" aria-label="Interactive Three.js brake assembly showcase">
-      <div class="brake-stage">
-        <canvas id="brake-canvas" role="img" aria-label="Interactive 3D model of a ventilated metal brake rotor with blue monoblock caliper. Drag to rotate. Use arrow keys when focused." tabindex="0"></canvas>
-        <div id="model-fallback" class="model-fallback"><div class="fallback-mark" aria-hidden="true">AP</div><p>3D preview is loading. If your device cannot render WebGL, you can still browse every part of the site.</p></div>
-      </div>
-      <span class="tech-left" aria-hidden="true">AP / BRAKE SYSTEM<br>CARBON-STUDY / PROTOTYPE</span>
-      <span class="tech-right" aria-hidden="true">3D MODEL / V 2.0<br>ENGINEERED IN THREE.JS</span>
-      <div class="scene-controls">
-        <div class="scene-caption"><strong id="webgl-state" role="status">PREPARING 3D ASSEMBLY</strong>DRAG TO ROTATE · ARROW KEYS</div>
-        <button type="button" class="view-button" data-explode aria-pressed="false" aria-label="Toggle exploded 3D assembly">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5Zm0 5 9 5 9-5M3 18l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span data-explode-label>EXPLODED VIEW</span>
-        </button>
-      </div>
-    </div>
-    <span class="hero-index">AUTOPRO / ORIGINAL 3D ASSEMBLY — BETA</span>
-  </div>
   </section>
-  <div class="stripe" aria-label="Brand principles"><div class="stripe-inner"><span>DESIGNED FOR PRECISION</span><i aria-hidden="true">✦</i><span>ENGINEERED WITH PURPOSE</span><i aria-hidden="true">✦</i><span>DEFINED BY THE DETAILS</span><i aria-hidden="true">✦</i><span>DESIGNED FOR PRECISION</span></div></div>
-  <section class="section"><div class="container">
-    <div class="section-heading"><div><div class="eyebrow">01 / THE STUDIO</div><h2 class="section-title">Beyond the <span class="accent">surface.</span></h2></div><p class="section-lead">A product experience designed like an engineering studio: inspect, compare and understand the components that matter.</p></div>
-    <div class="metrics">
-      <div class="metric"><span class="metric-index">01 / FOCUS</span><div class="metric-num">See the mechanics.</div><div class="metric-label">Interact with original WebGL geometry, real lighting and physical material surfaces.</div></div>
-      <div class="metric"><span class="metric-index">02 / DISCOVER</span><div class="metric-num">Understand the parts.</div><div class="metric-label">Explore category families, product information and component characteristics.</div></div>
-      <div class="metric"><span class="metric-index">03 / COLLECT</span><div class="metric-num">Build your selection.</div><div class="metric-label">Save an editable shortlist locally as the functional store takes shape.</div></div>
-    </div></div></section>
-  <section class="section alt"><div class="container">
-    <div class="section-heading"><div><div class="eyebrow">02 / SYSTEMS</div><h2 class="section-title">Every part <span class="accent">has a purpose.</span></h2></div><a href="/categories" data-nav class="inline-link">EXPLORE ALL SYSTEMS <span class="arrow" aria-hidden="true">↗</span></a></div>
-    ${notice()}
-    <div class="category-grid">${activeCategories().slice(0,3).map(categoryCard).join('')||'<div class="empty-state" style="grid-column:1/-1"><h2>VERIFIED CATEGORIES NOT AVAILABLE YET</h2><p>The separate staging database is ready for a real AutoPro product import.</p></div>'}</div>
-  </div></section>
-  <section class="section"><div class="container">
-    <div class="section-heading"><div><div class="eyebrow">03 / COMPONENT INDEX</div><h2 class="section-title">Built for the <span class="accent">details.</span></h2></div><a href="/catalog" data-nav class="inline-link">OPEN COMPONENT INDEX <span class="arrow" aria-hidden="true">↗</span></a></div>
-    ${notice()}
-    <div class="product-grid">${featured.length?featured.map(card).join(''):'<div class="empty-state" style="grid-column:1/-1"><h2>THE COMPONENT INDEX IS BEING PREPARED</h2><p>Verified AutoPro inventory has not yet been imported into D1.</p><a href="/catalog" data-nav class="btn btn-outline">OPEN CATALOGUE</a></div>'}</div>
-  </section>
-  <section class="section alt"><div class="container">
-    <div class="showcase">
-      <div class="showcase-copy"><div class="eyebrow">ENGINEERING / 004</div><h2 class="section-title">The study of<br><span class="accent">what moves us.</span></h2><p>We believe the best automotive experiences celebrate the construction as much as the performance. Discover our technical-first approach.</p><a href="/about" data-nav class="inline-link" style="align-self:start;margin-top:22px">ABOUT THE STUDIO <span class="arrow" aria-hidden="true">↗</span></a></div>
-      <div class="showcase-graphic"><div class="outline-text" aria-hidden="true">AP</div><div class="scene-caption" style="position:absolute;left:12%;top:20%;max-width:250px"><strong>FROM IDEA TO ASSEMBLY.</strong>Exploring every part in the system.</div></div>
+  <section class="quick-search" aria-label="Quick product search">
+    <div class="container quick-search-inner">
+      <div class="quick-search-heading">Find your component.<span>THE RIGHT PART STARTS HERE.</span></div>
+      <form id="hero-search" role="search"><label for="quick-part-search" class="sr-only">Search parts</label><input id="quick-part-search" name="search" type="search" maxlength="80" placeholder="Search performance parts..." required><button aria-label="Submit product search" type="submit">↗</button></form>
+      <a data-nav href="/categories" class="quick-search-cta">BROWSE SYSTEMS ↗</a>
     </div>
-  </div></section>`;
+  </section>
+  <section class="section">
+    <div class="container">
+      <div class="section-heading"><div><div class="eyebrow">01 / A DIFFERENT PERSPECTIVE</div><h2 class="section-title">Built around<br><span class="accent">the details.</span></h2></div><p class="section-lead">The best builds start with curiosity. Explore components through the textures, craftsmanship, and engineering that make cars extraordinary.</p></div>
+      <div class="photo-duo">
+        <div class="photo-duo-left"><img src="${PHOTOS.brakes}" loading="lazy" alt="Detailed close-up of a performance brake rotor and red caliper" width="1200" height="1800"><div class="photo-caption"><b>Engineering, up close.</b><span>01 / BRAKING</span></div></div>
+        <div class="photo-duo-right"><img src="${PHOTOS.wheels}" loading="lazy" alt="Photograph of a performance wheel under cool blue lighting" width="1200" height="1800"><div class="photo-caption"><b>Nothing overlooked.</b><span>02 / PRECISION</span></div></div>
+      </div>
+      <div style="padding:17px 0;color:#91a79b;font:500 10px var(--mono);letter-spacing:.03em">EDITORIAL PHOTOGRAPHY · BRAND REFERENCES, NOT AUTOPRO INVENTORY</div>
+    </div>
+  </section>
+  <section class="section alt">
+    <div class="container">
+      <div class="section-heading"><div><div class="eyebrow">02 / EXPLORE THE SYSTEMS</div><h2 class="section-title">Every component.<br><span class="accent">A purpose.</span></h2></div><a data-nav class="inline-link" href="/categories">VIEW ALL CATEGORIES <span class="arrow">↗</span></a></div>
+      ${notice()}
+      <div class="category-gallery">${systems.length?systems.map((c,i)=>`<a data-nav href="/catalog?category=${encodeURIComponent(c.id)}" class="category-photo"><img src="${photoForCategory(c)}" loading="lazy" width="900" height="1200" alt="Automotive component photography, editorial reference"><div class="category-info"><span class="category-label">0${i+1} / COMPONENT SYSTEM</span><h3>${esc(c.name)}</h3><span class="link">EXPLORE SYSTEM ↗</span></div></a>`).join(''):'<div class="empty-state"><h2>THE SYSTEMS ARE BEING PREPARED.</h2><p>The verified database is currently empty.</p></div>'}</div>
+    </div>
+  </section>
+  <section class="section" style="padding-bottom:0">
+    <div class="container"><div class="section-heading"><div><div class="eyebrow">03 / OUR APPROACH</div><h2 class="section-title">Performance is<br><span class="accent">personal.</span></h2></div><p class="section-lead">Not just another parts grid. A clear experience built to make discovering the next component as rewarding as installing it.</p></div></div>
+    <div class="container"><div class="metrics"><div class="metric"><span class="metric-index">01 / SEARCH</span><div class="metric-num">Find the right details.</div><div class="metric-label">Focused search, category filtering and useful product information.</div></div><div class="metric"><span class="metric-index">02 / DISCOVER</span><div class="metric-num">Explore every system.</div><div class="metric-label">Browsable components organized around real automotive systems.</div></div><div class="metric"><span class="metric-index">03 / COLLECT</span><div class="metric-num">Build your selection.</div><div class="metric-label">A private browser-local shortlist for comparing your next choices.</div></div></div></div>
+  </section>
+  <section class="section">
+    <div class="container"><div class="section-heading"><div><div class="eyebrow">04 / THE COMPONENT INDEX</div><h2 class="section-title">Explore the<br><span class="accent">catalogue.</span></h2></div><a data-nav href="/catalog" class="inline-link">SEE ALL COMPONENTS <span class="arrow">↗</span></a></div>
+      ${notice()}
+      <div class="product-grid">${featured.length?featured.map(card).join(''):'<div class="empty-state"><h2>NO VERIFIED PARTS YET</h2><p>AutoPro product data has not been imported.</p><a class="btn btn-outline" href="/catalog" data-nav>BROWSE CATALOGUE</a></div>'}</div>
+    </div>
+  </section>
+  <section class="spotlight">
+    <div class="spotlight-media"><img src="${PHOTOS.lighting}" loading="lazy" width="1200" height="900" alt="Close-up LED headlight on a high-performance sports car"></div>
+    <div class="spotlight-copy"><div class="eyebrow">05 / THE AUTOPRO PHILOSOPHY</div><h2>More than<br>the machine.</h2><p>For people who know a car is more than transport. It is design, precision and personality—built one detail at a time.</p><a data-nav href="/about" class="inline-link">LEARN ABOUT THE CONCEPT ↗</a></div>
+  </section>
+  `;
 }
+
 function catalogue(){
   const params=new URLSearchParams(location.search);
   const search=(params.get('search')||'').slice(0,80),category=params.get('category')||'all',sort=params.get('sort')||'featured';
@@ -178,19 +226,19 @@ function detailPage(slug){
   const p=activeProducts().find(x=>x.slug===slug);
   if(!p){main.innerHTML=intro('PRODUCT DETAILS','COMPONENT NOT <span class="accent">FOUND.</span>','This item does not exist in the current preview catalogue.')+`<section class="section"><div class="container"><a data-nav href="/catalog" class="btn btn-outline">BACK TO CATALOG ↗</a></div></section>`;return}
   const specs=Object.entries(p.specifications||{}).slice(0,6);
-  main.innerHTML=`<section class="page-top"><div class="container"><div class="bread"><a data-nav href="/">HOME</a> / <a data-nav href="/catalog">CATALOG</a> / <b>${esc(p.name)}</b></div><div class="eyebrow">COMPONENT INSPECTION</div><h1>THE <span class="accent">DETAILS.</span></h1></div></section><section class="section"><div class="container">${notice()}<div class="detail-layout"><div class="detail-art">${artwork(p)}<span class="detail-badge">${p.demo?'DEMO PRODUCT — NOT FOR SALE':'STAGING CATALOG ITEM'}</span></div><div class="detail-body"><div class="eyebrow">${esc(p.brand||'AUTOPRO')} / ${esc(p.sku)}</div><h1>${esc(p.name)}</h1><p class="description">${esc(p.description||'Component details are being prepared.')}</p><div class="divider"></div><div class="detail-price">${money(p.price)}</div><p class="subtle">${p.demo?'ILLUSTRATIVE AMOUNT ONLY — NO ACTUAL INVENTORY':'STAGING CATALOGUE — NO CHECKOUT ENABLED'}</p><div class="qty-row"><div class="qty-stepper"><button aria-label="Decrease quantity" data-detail-delta="-1" ${detailQuantity<=1?'disabled':''}>−</button><output id="detail-qty">${detailQuantity}</output><button aria-label="Increase quantity" data-detail-delta="1" ${detailQuantity>=6?'disabled':''}>+</button></div><button type="button" data-detail-add="${esc(p.slug)}" class="btn btn-primary">ADD TO PREVIEW SELECTION ↗</button></div><a data-nav href="/cart" class="inline-link">VIEW MY SELECTION <span class="arrow">↗</span></a><div class="detail-specs">${specs.map(([k,v])=>`<div class="spec-item"><span>${esc(k.toUpperCase())}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div></div></div></section>`;
+  main.innerHTML=`<section class="page-top"><div class="container"><div class="bread"><a data-nav href="/">HOME</a> / <a data-nav href="/catalog">CATALOG</a> / <b>${esc(p.name)}</b></div><div class="eyebrow">COMPONENT INSPECTION</div><h1>THE <span class="accent">DETAILS.</span></h1></div></section><section class="section"><div class="container">${notice()}<div class="detail-layout"><div class="detail-art"><img src="${photoFor(p)}" alt="Automotive editorial reference photograph, not a picture of the exact product" width="1000" height="1200"><span class="detail-badge">${p.demo?'DEMO PRODUCT — NOT FOR SALE':'STAGING CATALOG ITEM'}</span></div><div class="detail-body"><div class="eyebrow">${esc(p.brand||'AUTOPRO')} / ${esc(p.sku)}</div><h1>${esc(p.name)}</h1><p class="description">${esc(p.description||'Component details are being prepared.')}</p><div class="divider"></div><div class="detail-price">${money(p.price)}</div><p class="subtle">${p.demo?'ILLUSTRATIVE AMOUNT ONLY — NO ACTUAL INVENTORY':'STAGING CATALOGUE — NO CHECKOUT ENABLED'}</p><div class="qty-row"><div class="qty-stepper"><button aria-label="Decrease quantity" data-detail-delta="-1" ${detailQuantity<=1?'disabled':''}>−</button><output id="detail-qty">${detailQuantity}</output><button aria-label="Increase quantity" data-detail-delta="1" ${detailQuantity>=6?'disabled':''}>+</button></div><button type="button" data-detail-add="${esc(p.slug)}" class="btn btn-primary">ADD TO PREVIEW SELECTION ↗</button></div><a data-nav href="/cart" class="inline-link">VIEW MY SELECTION <span class="arrow">↗</span></a><div class="detail-specs">${specs.map(([k,v])=>`<div class="spec-item"><span>${esc(k.toUpperCase())}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div></div></div></section>`;
 }
 function cartPage(){
   const valid=cart.map(c=>({line:c,product:activeProducts().find(p=>p.slug===c.slug)})).filter(x=>x.product);
   const count=valid.reduce((n,x)=>n+x.line.qty,0);
   const subtotal=valid.reduce((n,x)=>n+x.line.qty*x.product.price,0);
-  main.innerHTML=intro('MY SELECTION','THE PREVIEW <span class="accent">CART.</span>','Make a personal shortlist, adjust quantities and revisit your selection. Orders and payments are not available.')+`<section class="section"><div class="container">${notice()}${valid.length?`<div class="cart-layout"><div class="cart-list">${valid.map(({line,product:p})=>`<article class="cart-line" data-testid="cart-item"><div class="cart-visual">${artwork(p)}</div><div class="cart-line-body"><h3>${esc(p.name)}</h3><p>${p.demo?'DEMO ITEM — NOT FOR SALE':'STAGING ITEM'} · ${esc(p.brand)}</p><div class="cart-qty"><button type="button" aria-label="Decrease ${esc(p.name)} quantity" data-qty="${esc(p.slug)}" data-step="-1">−</button><strong>${line.qty}</strong><button type="button" aria-label="Increase ${esc(p.name)} quantity" data-qty="${esc(p.slug)}" data-step="1" ${line.qty>=6?'disabled':''}>+</button><button type="button" class="remove-btn" data-remove="${esc(p.slug)}">REMOVE</button></div></div><div class="price">${money(p.price*line.qty)}</div></article>`).join('')}</div><aside class="cart-summary"><h2>SELECTION SUMMARY</h2><div class="summary-row"><span>ITEMS</span><strong>${count}</strong></div><div class="summary-row"><span>SUBTOTAL PREVIEW</span><strong>${money(subtotal)}</strong></div><div class="total-row"><span>ILLUSTRATIVE TOTAL</span><span>${money(subtotal)}</span></div><p class="summary-note">This amount is for UI demonstration only. Items are stored in your browser; no payment, shipping or order processing exists.</p><button disabled type="button" class="btn">CHECKOUT NOT AVAILABLE</button><a data-nav href="/catalog" class="inline-link" style="margin-top:25px">CONTINUE BROWSING <span class="arrow">↗</span></a></aside></div>`:`<div class="empty-state" data-testid="empty-cart"><div class="empty-icon">0</div><h2>NOTHING SAVED YET.</h2><p>Explore the AutoPro catalogue and add example components to test your personal selection.</p><a href="/catalog" data-nav class="btn btn-primary">EXPLORE COMPONENTS ↗</a></div>`}</div></section>`;
+  main.innerHTML=intro('MY SELECTION','THE PREVIEW <span class="accent">CART.</span>','Make a personal shortlist, adjust quantities and revisit your selection. Orders and payments are not available.')+`<section class="section"><div class="container">${notice()}${valid.length?`<div class="cart-layout"><div class="cart-list">${valid.map(({line,product:p})=>`<article class="cart-line" data-testid="cart-item"><div class="cart-visual"><img src="${photoFor(p)}" alt="Automotive editorial reference" loading="lazy" width="200" height="200"></div><div class="cart-line-body"><h3>${esc(p.name)}</h3><p>${p.demo?'DEMO ITEM — NOT FOR SALE':'STAGING ITEM'} · ${esc(p.brand)}</p><div class="cart-qty"><button type="button" aria-label="Decrease ${esc(p.name)} quantity" data-qty="${esc(p.slug)}" data-step="-1">−</button><strong>${line.qty}</strong><button type="button" aria-label="Increase ${esc(p.name)} quantity" data-qty="${esc(p.slug)}" data-step="1" ${line.qty>=6?'disabled':''}>+</button><button type="button" class="remove-btn" data-remove="${esc(p.slug)}">REMOVE</button></div></div><div class="price">${money(p.price*line.qty)}</div></article>`).join('')}</div><aside class="cart-summary"><h2>SELECTION SUMMARY</h2><div class="summary-row"><span>ITEMS</span><strong>${count}</strong></div><div class="summary-row"><span>SUBTOTAL PREVIEW</span><strong>${money(subtotal)}</strong></div><div class="total-row"><span>ILLUSTRATIVE TOTAL</span><span>${money(subtotal)}</span></div><p class="summary-note">This amount is for UI demonstration only. Items are stored in your browser; no payment, shipping or order processing exists.</p><button disabled type="button" class="btn">CHECKOUT NOT AVAILABLE</button><a data-nav href="/catalog" class="inline-link" style="margin-top:25px">CONTINUE BROWSING <span class="arrow">↗</span></a></aside></div>`:`<div class="empty-state" data-testid="empty-cart"><div class="empty-icon">0</div><h2>NOTHING SAVED YET.</h2><p>Explore the AutoPro catalogue and add example components to test your personal selection.</p><a href="/catalog" data-nav class="btn btn-primary">EXPLORE COMPONENTS ↗</a></div>`}</div></section>`;
 }
 function aboutPage(){main.innerHTML=intro('THE AUTOPRO CONCEPT','ENGINEERED FOR <span class="accent">THE DETAILS.</span>','An automotive parts storefront concept focused on an honest, practical browsing experience.')+`<section class="section"><div class="container"><div class="feature-row"><div><div class="eyebrow">THE DESIGN</div><h2>SHARP. FAST. FUNCTIONAL.</h2></div><p class="section-lead">Black, metallic graphite and unmistakable performance orange — a digital identity designed around precision and clarity.</p></div><div class="feature-row"><div><div class="eyebrow">THE PLATFORM</div><h2>CLOUDFLARE AT ITS CORE.</h2></div><p class="section-lead">This separate public preview uses a Cloudflare Worker with D1 for catalogue data. Backend health, browsing and filtering are tested independently of the legacy Supabase admin system.</p></div><div class="feature-row"><div><div class="eyebrow">THE STATUS</div><h2>BUILDING, NOT SELLING.</h2></div><p class="section-lead">Demonstration products and illustrative prices are never represented as real inventory. Authentication, payment and fulfillment remain disabled until verified.</p></div><div style="margin-top:45px"><a data-nav href="/catalog" class="btn btn-primary">EXPLORE THE PREVIEW ↗</a></div></div></section>`;}
 function renderRoute(shouldScroll=true){
-  if(window.AutoPro3D) window.AutoPro3D.unmount();
+  
   const path=decodeURI(location.pathname).replace(/\/+$/,'')||'/';
-  if(path==='/'||path==='/home'){home();document.title='AutoPro — Performance Parts · Preview';}
+  if(path==='/'||path==='/home'){home();document.title='AutoPro — Made for the Drive | Cinematic Preview';}
   else if(path==='/catalog'||path==='/products'){catalogue();document.title='Parts Catalogue — AutoPro Preview';}
   else if(path==='/categories'){categoryPage();document.title='Categories — AutoPro Preview';}
   else if(path==='/cart'){cartPage();document.title='My Selection — AutoPro Preview';}
@@ -199,8 +247,7 @@ function renderRoute(shouldScroll=true){
   else{main.innerHTML=intro('ERROR 404','THIS ROAD <span class="accent">ENDS HERE.</span>','The route you requested is not part of the AutoPro preview.')+'<section class="section"><div class="container"><a href="/" data-nav class="btn btn-primary">BACK HOME ↗</a></div></section>';}
   document.querySelectorAll('.desktop-nav a').forEach(x=>x.classList.toggle('active',x.getAttribute('href')===path));
   updateCount();
-  const sceneCanvas=document.getElementById('brake-canvas');
-  if(sceneCanvas && window.AutoPro3D) window.AutoPro3D.mount(sceneCanvas);
+  
   if(shouldScroll)scrollTo({top:0,behavior:'instant'});
 }
 function go(href){if(!href)return;const url=new URL(href,location.href);if(url.origin!==location.origin)return;history.pushState({},'',url.pathname+url.search);detailQuantity=1;renderRoute();}
@@ -208,14 +255,6 @@ function closeMenu(){document.getElementById('mobile-nav').hidden=true;document.
 document.addEventListener('click',event=>{
   const anchor=event.target.closest('a[data-nav]');
   if(anchor&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();closeMenu();go(anchor.getAttribute('href'));return;}
-  const explode=event.target.closest('[data-explode]');
-  if(explode){
-    const expanded=window.AutoPro3D?.toggleExploded()??false;
-    explode.setAttribute('aria-pressed',String(expanded));
-    const label=explode.querySelector('[data-explode-label]');
-    if(label)label.textContent=expanded?'ASSEMBLED VIEW':'EXPLODED VIEW';
-    return;
-  }
   const add=event.target.closest('[data-add]');
   if(add){addItem(add.dataset.add);return;}
   const detailAdd=event.target.closest('[data-detail-add]');
