@@ -12,8 +12,6 @@ import {
   Truck,
   RotateCcw,
   ChevronLeft,
-  Heart,
-  Share2,
 } from 'lucide-react';
 import { supabase, Product } from '@/lib/supabase';
 import Header from '@/components/header';
@@ -24,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { addToCart } from '@/lib/cart-store';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -31,6 +30,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [cartFeedback, setCartFeedback] = useState('');
 
   const loadProduct = useCallback(async () => {
     const { data } = await supabase
@@ -159,8 +159,11 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-3 mb-8">
                 <div className="flex items-center border border-neutral-800 rounded-lg overflow-hidden">
                   <button
+                    type="button"
+                    aria-label="Decrease selected quantity"
+                    disabled={quantity <= 1}
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-3 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+                    className="px-4 py-3 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors disabled:opacity-40"
                   >
                     -
                   </button>
@@ -168,26 +171,33 @@ export default function ProductDetailPage() {
                     {quantity}
                   </div>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-4 py-3 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+                    type="button"
+                    aria-label="Increase selected quantity"
+                    disabled={quantity >= Math.min(99, Math.max(0, product.stock_quantity))}
+                    onClick={() => setQuantity(Math.min(99, product.stock_quantity, quantity + 1))}
+                    className="px-4 py-3 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors disabled:opacity-40"
                   >
                     +
                   </button>
                 </div>
 
-                <Button className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold">
+                <Button type="button" disabled={product.stock_quantity <= 0} onClick={() => {
+                  const result = addToCart(product, quantity);
+                  setCartFeedback(result.ok
+                    ? `Added ${quantity} ${quantity === 1 ? 'unit' : 'units'} to your cart.`
+                    : result.reason);
+                }} className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-40">
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   Add to Cart
                 </Button>
-
-                <Button variant="outline" size="icon" className="h-12 w-12 border-neutral-800">
-                  <Heart className="w-5 h-5" />
-                </Button>
-
-                <Button variant="outline" size="icon" className="h-12 w-12 border-neutral-800">
-                  <Share2 className="w-5 h-5" />
-                </Button>
               </div>
+
+              {cartFeedback && (
+                <div role="status" aria-live="polite" className="mb-6 rounded-lg border border-orange-800/50 bg-orange-950/30 px-4 py-3 text-orange-200">
+                  {cartFeedback}
+                  {cartFeedback.startsWith('Added') && <Link href="/cart" className="ml-3 font-semibold underline underline-offset-4">View cart</Link>}
+                </div>
+              )}
 
               {product.stock_quantity > 0 ? (
                 <div className="flex items-center gap-2 text-green-500 mb-8">
@@ -203,15 +213,15 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="flex flex-col items-center p-4 bg-neutral-900 border border-neutral-800 rounded-lg">
                   <Shield className="w-6 h-6 text-red-500 mb-2" />
-                  <span className="text-xs text-neutral-400 text-center">Warranty Included</span>
+                  <span className="text-xs text-neutral-400 text-center">Product information</span>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-neutral-900 border border-neutral-800 rounded-lg">
                   <Truck className="w-6 h-6 text-red-500 mb-2" />
-                  <span className="text-xs text-neutral-400 text-center">Free Shipping</span>
+                  <span className="text-xs text-neutral-400 text-center">Delivery not yet configured</span>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-neutral-900 border border-neutral-800 rounded-lg">
                   <RotateCcw className="w-6 h-6 text-red-500 mb-2" />
-                  <span className="text-xs text-neutral-400 text-center">30-Day Returns</span>
+                  <span className="text-xs text-neutral-400 text-center">Orders unavailable</span>
                 </div>
               </div>
 
@@ -269,10 +279,8 @@ export default function ProductDetailPage() {
                 <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-8">
                   <h3 className="text-2xl font-bold text-white mb-6">Shipping Information</h3>
                   <div className="space-y-4 text-neutral-300">
-                    <p>Free standard shipping on all orders over $50</p>
-                    <p>Express shipping available at checkout</p>
-                    <p>International shipping available to select countries</p>
-                    <p>All orders are processed within 1-2 business days</p>
+                    <p>Shipping and returns are not configured for this concept storefront.</p>
+                    <p>Cart selections are stored in this browser only. No orders or payments are accepted yet.</p>
                   </div>
                 </div>
               </TabsContent>
