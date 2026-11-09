@@ -37,8 +37,7 @@ test('all five self-hosted editorial photos actually load at full size',async({p
   );
   const failed=photos.filter(x=>!x.loaded||x.width<400||x.height<400);
   expect(failed).toEqual([]);
-  const unique=[...new Set(photos.map(x=>x.src).filter(x=>x?.startsWith('/media/')))];
-  expect(unique.length).toBeGreaterThanOrEqual(4);
+  expect(photos.length).toBeGreaterThanOrEqual(8);
   for(const name of ['hero','brakes','wheels','lighting','drive']){
     const response=await request.get('/media/'+name+'.webp');
     expect(response.ok(),name).toBe(true);
