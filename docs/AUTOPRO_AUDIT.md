@@ -38,3 +38,21 @@ Still required before production: live Supabase-connected browse/add tests, real
 - **Rollout requirement:** Admin sign-in with a real AutoPro Supabase project has not been verified. Set up that project and explicitly verify administrator role metadata and non-admin denial before publishing these changes.
 
 GitHub Actions verified the review branch through source, TypeScript and browser checks: **11 source tests passed, 11 Playwright tests passed, 1 mobile-only test skipped on desktop**. Browser tests use mocked Supabase product reads; they do not demonstrate live Supabase connectivity.
+
+
+## Order and payment write lockdown — next checkpoint
+
+A second, Supabase-CLI-generated migration is prepared at
+`supabase/migrations/20261109164551_lock_down_order_writes.sql`.
+
+- Explicitly revokes order and order-item write permissions from `PUBLIC`, `anon` and `authenticated`.
+- Removes the unsafe legacy policy permitting client-controlled order totals.
+- Preserves authenticated, RLS-scoped read access to each customer's existing order history.
+- Retains write privileges for trusted `service_role` server code **only**; there is no order creation endpoint or enabled checkout.
+- Does **not** modify product, cart, shipping, payment or admin permissions.
+
+**Verification:** GitHub Actions runs `tests/autopro-order-rls.sh` against an **isolated PostgreSQL 17 service**. It creates simulated Supabase auth roles and the existing schema, adds broad legacy grants, applies the proposed migration, and asserts that customer inserts with fabricated totals/prices fail while owner-scoped read access survives. This is a real SQL execution test against a simulated database, **not** a live AutoPro backend test.
+
+**Migration rollout blockers:** The Supabase connection currently lists no AutoPro project. Do not apply the SQL to the AURA, Bewize, Frame & Fade, or invoicing projects. Before applying to any newly linked AutoPro project: inspect its existing schema/policies/grants, back up existing data, run on a separate staging database, confirm server-secret handling, and verify admin login and end-user isolation. AutoPro checkout stays disabled.
+
+A separate AutoPro project might incur cost. Request a Supabase project cost quote and owner approval before provisioning new infrastructure.
