@@ -1,0 +1,69 @@
+name: AutoPro Cloudflare website preview QA
+
+on:
+  push:
+    branches: ['preview/autopro-cloudflare-storefront']
+    paths:
+      - 'cloudflare/preview-site/index.html'
+      - 'cloudflare/preview-site/app.css'
+      - 'cloudflare/preview-site/app.js'
+      - 'cloudflare/preview-site/worker.mjs'
+      - 'cloudflare/preview-site/playwright.config.ts'
+      - 'cloudflare/preview-site/tests/**'
+      - '.github/workflows/autopro-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  live-preview:
+    name: Live desktop/mobile functional QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium and system deps
+        run: npx playwright install --with-deps chromium
+      - name: Prepare screenshots folder
+        run: mkdir -p cloudflare/preview-site/screenshots
+      - name: Test actual deployed Cloudflare site
+        run: npx playwright test --config cloudflare/preview-site/playwright.config.ts --workers=1
+      - name: Inspect captured screenshots
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          for name in ("desktop.jpg", "mobile.jpg"):
+              p=Path("cloudflare/preview-site/screenshots")/name
+              image=Image.open(p)
+              assert image.width>=375 and image.height>=800,(name,image.size)
+              assert max(ImageStat.Stat(image.convert("RGB")).stddev)>18,(name,"image appears blank")
+              print(name,image.size,p.stat().st_size)
+          PY
+      - name: Save reviewed screenshots to preview branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloudflare/preview-site/screenshots/desktop.jpg cloudflare/preview-site/screenshots/mobile.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(autopro): capture tested desktop and mobile Cloudflare preview"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-preview-failure-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
