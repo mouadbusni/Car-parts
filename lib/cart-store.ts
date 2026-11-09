@@ -68,7 +68,7 @@ function hydrate() {
 }
 
 function broadcast() {
-  for (const listener of subscribers) listener();
+  subscribers.forEach(listener => listener());
 }
 
 function subscribe(listener: () => void) {
