@@ -25,3 +25,16 @@ This review branch makes small, functional fixes without changing the AutoPro br
 GitHub Actions on the review branch passed `node --test tests/autopro-audit.test.mjs tests/autopro-cart-source.test.mjs`, `npm run typecheck`, and Playwright cart flows for desktop Chromium and Mobile Chrome (**5 passed, 1 skipped**). Playwright routes the product read API to mocked responses; it **does not prove live Supabase database connectivity**.
 
 Still required before production: live Supabase-connected browse/add tests, real stock and price revalidation, authorized order creation, checkout/payment flow, and accessibility remediation. The disabled checkout button prevents implying these systems work.
+
+
+## Security review — added to the same draft PR
+
+- Removed the hard-coded administrator login shortcut, client-editable email cookie fallback and unchecked admin route cookie.
+- Created a server session endpoint that accepts only a token verified by Supabase Auth and a trusted `app_metadata.role=admin` claim.
+- Admin and dashboard middleware now verify the admin's token on protected requests. The session cookie is `HttpOnly`, short-lived and `Secure` in production.
+- Removed default admin passwords from the seed script and setup guide; a unique strong owner-supplied password is required to create an admin with trusted app metadata.
+- **Operational action:** If the previous administrator credentials were used on any Supabase account, rotate them and revoke sessions.
+- **Outstanding authorization risk:** the historical `orders` INSERT policy lets authenticated clients provide their own totals. Keep checkout disabled and revoke direct client order inserts via a reviewed migration before launching any real order flow.
+- **Rollout requirement:** Admin sign-in with a real AutoPro Supabase project has not been verified. Set up that project and explicitly verify administrator role metadata and non-admin denial before publishing these changes.
+
+GitHub Actions verified the review branch through source, TypeScript and browser checks: **11 source tests passed, 11 Playwright tests passed, 1 mobile-only test skipped on desktop**. Browser tests use mocked Supabase product reads; they do not demonstrate live Supabase connectivity.
