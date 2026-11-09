@@ -1,0 +1,68 @@
+name: AutoPro cinematic photo asset import
+on:
+  push:
+    branches: ['design/autopro-cinematic-photo-v3']
+    paths: ['.github/workflows/autopro-photo-import.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-photos:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download licensed automotive photography and supplied hero
+        shell: bash
+        env:
+          HERO_CANVA_LARGE: "https://media.canva.com/v2/image-resize/format:PNG/height:941/quality:100/uri:ifs%3A%2F%2FM%2Fc05151a7-0e8d-4e00-bd96-bfd2bb7a05ad/watermark:F/width:1672?csig=AAAAAAAAAAAAAAAAAAAAAIjYLBba-0d9qqrHVfnfwnm-oCva0TRXY5ATkQqZif7e&exp=1794283240&osig=AAAAAAAAAAAAAAAAAAAAADMCut2FBcCLBvTB98UHkvJcAOc1l4GCc1bPrE0pxPja&signer=media-rpc&token=AAIAAU0AJGMwNTE1MWE3LTBlOGQtNGUwMC1iZDk2LWJmZDJiYjdhMDVhZAAAAAABocOdekB9Vl1fGzgo38xENBLukXw99CSC77K4Xi8z7bLy0dO5QQ&x-canva-quality=thumbnail"
+          HERO_CANVA_SMALL: "https://media.canva.com/v2/image-resize/format:PNG/height:112/quality:100/uri:ifs%3A%2F%2FM%2Fc05151a7-0e8d-4e00-bd96-bfd2bb7a05ad/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAIjYLBba-0d9qqrHVfnfwnm-oCva0TRXY5ATkQqZif7e&exp=1794283240&osig=AAAAAAAAAAAAAAAAAAAAADMCut2FBcCLBvTB98UHkvJcAOc1l4GCc1bPrE0pxPja&signer=media-rpc&token=AAIAAU0AJGMwNTE1MWE3LTBlOGQtNGUwMC1iZDk2LWJmZDJiYjdhMDVhZAAAAAABocOdekB9Vl1fGzgo38xENBLukXw99CSC77K4Xi8z7bLy0dO5QQ&x-canva-quality=thumbnail"
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/autopro-photo cloudflare/cinematic/assets
+          if curl -L -f -sS --max-time 35 "$HERO_CANVA_LARGE" -o /tmp/autopro-photo/hero.png; then
+            echo "High-resolution cinematic hero retrieved"
+          else
+            echo "Canva original transform unavailable; using verified Unsplash backup."
+            curl -L -f -sS --max-time 35 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=85' -o /tmp/autopro-photo/hero.jpg
+          fi
+          curl -L -f -sS --max-time 35 'https://images.unsplash.com/photo-1746968989993-6b3fc7b534d9?auto=format&fit=crop&w=1200&q=85' -o /tmp/autopro-photo/brakes.jpg
+          curl -L -f -sS --max-time 35 'https://images.unsplash.com/photo-1735012314901-10b3638774a0?auto=format&fit=crop&w=1200&q=85' -o /tmp/autopro-photo/wheels.jpg
+          curl -L -f -sS --max-time 35 'https://images.unsplash.com/photo-1720434632396-d0f53b752fc5?auto=format&fit=crop&w=1200&q=85' -o /tmp/autopro-photo/lighting.jpg
+          curl -L -f -sS --max-time 35 'https://images.unsplash.com/photo-1655150080914-a97576d57c9a?auto=format&fit=crop&w=1400&q=85' -o /tmp/autopro-photo/drive.jpg
+      - name: Optimize, validate and write stable local WebP assets
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps, ImageEnhance
+          source=Path('/tmp/autopro-photo')
+          dest=Path('cloudflare/cinematic/assets')
+          inputs={'hero':'hero.png' if (source/'hero.png').exists() else 'hero.jpg',
+                  'brakes':'brakes.jpg','wheels':'wheels.jpg','lighting':'lighting.jpg','drive':'drive.jpg'}
+          for name,filename in inputs.items():
+              im=Image.open(source/filename).convert('RGB')
+              if name=='hero' and im.width < 1200:
+                  raise RuntimeError(f'Hero photo too small: {im.size}; source must be large.')
+              if im.width<450 or im.height<400:
+                  raise RuntimeError(f'Photo {name} too small: {im.size}')
+              maximum=1900 if name=='hero' else 1250
+              if im.width>maximum:
+                  im.thumbnail((maximum,1800),Image.Resampling.LANCZOS)
+              # The reference photos are editorial mood imagery, not verified inventory.
+              out=dest/(name+'.webp')
+              im.save(out,'WEBP',quality=85,method=6)
+              assert out.stat().st_size>25000
+              print(name,im.size,out.stat().st_size)
+          PY
+      - name: Commit verified assets to only the review branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloudflare/cinematic/assets/
+          git commit -m "assets(autopro): add optimized automotive photography for cinematic v3"
+          git restore --worktree .
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
