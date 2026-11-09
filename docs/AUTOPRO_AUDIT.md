@@ -15,11 +15,13 @@ This review branch makes small, functional fixes without changing the AutoPro br
 ## Confirmed limitations — further development is required
 
 - Product-name search is implemented using the existing Supabase `products.name` query. This branch does **not** create VIN or vehicle compatibility matching.
-- Cart page contains a hard-coded empty cart; the header cart count does not reflect an end-to-end cart.
+- **Implemented on this branch:** browser-local cart shared by product detail, catalog, featured cards and header, with quantity controls, subtotal, stock-at-add limits, removal and persistence across reloads. This is **not** a real order system.
 - Supabase backend credentials/data, production deployment and record-level authorization have **not** been live-verified in this source audit.
 - `QA_REPORT.md` documents hundreds of accessibility findings; the historical test status should not be interpreted as an accessibility pass.
 - AutoPro has no live URL configured in the BDA portfolio; its BDA cover remains an editorial concept, not a live screenshot.
 
 ## Verification
 
-Run `node --test tests/autopro-audit.test.mjs` for source regression checks and `npm run typecheck` for TypeScript. A real browser/database smoke test is still required before any deployment.
+GitHub Actions on the review branch passed `node --test tests/autopro-audit.test.mjs tests/autopro-cart-source.test.mjs`, `npm run typecheck`, and Playwright cart flows for desktop Chromium and Mobile Chrome (**5 passed, 1 skipped**). Playwright routes the product read API to mocked responses; it **does not prove live Supabase database connectivity**.
+
+Still required before production: live Supabase-connected browse/add tests, real stock and price revalidation, authorized order creation, checkout/payment flow, and accessibility remediation. The disabled checkout button prevents implying these systems work.
