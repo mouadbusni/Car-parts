@@ -6,6 +6,7 @@ on:
     paths:
       - 'cloudflare/preview-site/**'
       - 'cloudflare/cinematic/**'
+      - 'cloudflare/inventory/**'
       - '.github/workflows/autopro-v5-media-qa.yml'
   workflow_dispatch:
 
@@ -31,8 +32,8 @@ jobs:
           node --check cloudflare/preview-site/app.js
           node --check cloudflare/cinematic/worker.mjs
           node --check cloudflare/cinematic/tests/local-server.mjs
-      - name: Unit test the real Worker product-media router
-        run: node --test cloudflare/cinematic/tests/media-worker.test.mjs
+      - name: Unit test Worker routing and inventory manifest preflight
+        run: node --test cloudflare/cinematic/tests/media-worker.test.mjs cloudflare/inventory/tests/validate-manifest.test.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Start isolated QA server with no real inventory
