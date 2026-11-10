@@ -129,8 +129,9 @@ function categoryArtwork(category){
 }
 function artwork(product){return artSvg(product.art||(/brake|rotor/i.test(product.name)?'rotor':/suspension|coilover/i.test(product.name)?'coilover':/filter/i.test(product.name)?'filter':/exhaust/i.test(product.name)?'exhaust':'cooler'))}
 function intro(eyebrow,title,lead){return `<section class="page-top"><div class="container"><div class="bread"><a href="/" data-nav>HOME</a> &nbsp;/&nbsp; <b>${esc(eyebrow)}</b></div><div class="eyebrow">${esc(eyebrow)}</div><h1>${title}</h1><p>${esc(lead)}</p></div></section>`;}
-function notice(){
+function notice(compact=false){
   if(serviceStatus==='unavailable')return `<div class="notice" role="status"><strong>STAGING DATA SERVICE UNAVAILABLE.</strong> Demo products are for interface testing only. No actual inventory is being shown.</div>`;
+  if(demoMode&&compact)return `<div class="notice notice-compact" role="note"><strong>DEMO CATALOGUE</strong><span> Sample components only · No verified stock or purchasing.</span><button type="button" data-toggle-demo>${showDemo?'Hide examples':'Show examples'}</button></div>`;
   if(demoMode)return `<div class="notice" role="status"><strong>DEMO CATALOGUE · EXAMPLE PRODUCTS ONLY.</strong> AutoPro's Cloudflare D1 database is connected but contains no verified product inventory. Every visible item and price is a demonstration—not an offer for sale. <button type="button" data-toggle-demo style="color:#c8e3ff;text-decoration:underline;border:0;background:none;padding:0">${showDemo?'Hide demo items':'Show demo items'}</button></div>`;
   return `<div class="notice" role="status"><strong>STAGING MODE.</strong> Product listings come from the AutoPro D1 API. Prices and stock are not validated for checkout; orders remain disabled.</div>`;
 }
@@ -210,7 +211,7 @@ function home(){
   </section>
   <section class="section">
     <div class="container"><div class="section-heading"><div><div class="eyebrow">04 / THE COMPONENT INDEX</div><h2 class="section-title">Explore the<br><span class="accent">catalogue.</span></h2></div><a data-nav href="/catalog" class="inline-link">SEE ALL COMPONENTS <span class="arrow">↗</span></a></div>
-      ${notice()}
+      ${notice(true)}
       <div class="product-grid" data-home-featured>${featured.length?featured.map(card).join(''):'<div class="empty-state"><h2>NO VERIFIED PARTS YET</h2><p>AutoPro product data has not been imported.</p><a class="btn btn-outline" href="/catalog" data-nav>BROWSE CATALOGUE</a></div>'}</div>
     </div>
   </section>
