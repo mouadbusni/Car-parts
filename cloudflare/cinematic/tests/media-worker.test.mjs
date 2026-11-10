@@ -49,7 +49,7 @@ test('never uses editorial pictures as fallback when product media store is abse
 });
 test('rejects paths outside the exact product media allowlist',async()=>{
   for(const path of [
-    '/media/products/../hero.webp',
+    '/media/products/bad%2f..%2fhero.webp',
     '/media/products/.hidden.webp',
     '/media/products/brakes/rotor.svg',
     '/media/products/brakes/ROTOR.webp',
