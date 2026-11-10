@@ -2,43 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#090a0d">
-  <meta name="description" content="AutoPro design and functional testing preview. An interactive automotive engineering studio with original 3D brake assembly and Cloudflare D1 catalogue. Not a live retail store.">
-  <title>AUTOPRO | BUILT FOR THE DRIVE — DESIGN PREVIEW</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b0b0e'/%3E%3Cpath d='M11 43L27 15h10L53 43H41l-4-8H25l-4 8z' fill='%23568ef6'/%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b111b">
+  <meta name="description" content="AutoPro — a focused automotive parts discovery experience. Explore components, systems, and engineering details. Design preview only; no orders or payments.">
+  <title>AutoPro — Parts for the Drive | Design Preview</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='11' fill='%230b111b'/%3E%3Cpath d='M7 35L20 11h8L15 35Z' fill='%23f3f6fa'/%3E%3Cpath d='M25 11h9c8 0 12 4 10 11-2 6-7 9-15 9h-3l4-7h2c4 0 6-1 6-4s-2-4-6-4h-4z' fill='%2387b4ff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/site.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-  <div class="preview-ribbon"><span class="live-dot" aria-hidden="true"></span> AUTOPRO / AUTOMOTIVE <span class="ribbon-divider">/</span> VISUAL CONCEPT — NO ORDERS <span class="ribbon-right">CINEMATIC EDITION / V3</span></div>
+  <div class="preview-ribbon" role="note">
+    <span class="preview-label">PREVIEW ENVIRONMENT</span>
+    <span class="ribbon-divider" aria-hidden="true"></span>
+    <span>Example products only · Checkout disabled</span>
+    <span class="ribbon-right">AUTOPRO / DESIGN REVIEW</span>
+  </div>
   <header class="site-header" id="site-header">
     <div class="header-inner">
-      <a href="/" class="brand" data-nav aria-label="AutoPro home">
-        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 42 38"><path d="M2 35L16 3h12l13 32H30l-4-11h-9l-4 11z" fill="currentColor"/><path d="M18 18h6l-3-8z" fill="#0a0a0c"/></svg></span>
-        <span class="brand-word">AUTO<span>PRO</span><small>PERFORMANCE PARTS</small></span>
+      <a href="/" class="brand" data-nav aria-label="AutoPro — home">
+        <span class="brand-symbol" aria-hidden="true">
+          <svg viewBox="0 0 48 48" focusable="false"><path d="M5 36L19 10h9L14 36Z" fill="currentColor"/><path d="M26 10h8c9 0 14 5 12 12-2 7-8 11-17 11h-4l4-7h2c5 0 8-1 9-5 .5-3-2-4-6-4h-4z" fill="var(--brand-blue)"/></svg>
+        </span>
+        <span class="brand-word">Auto<span>Pro</span><small>PRECISION AUTOMOTIVE</small></span>
       </a>
-      <nav class="desktop-nav" aria-label="Main navigation">
-        <a data-nav href="/" data-route="/">HOME</a>
-        <a data-nav href="/catalog" data-route="/catalog">COMPONENTS</a>
-        <a data-nav href="/categories" data-route="/categories">SYSTEMS</a>
-        <a data-nav href="/about" data-route="/about">THE STUDIO</a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a data-nav href="/" data-route="/">Home</a>
+        <a data-nav href="/catalog" data-route="/catalog">Parts</a>
+        <a data-nav href="/categories" data-route="/categories">Categories</a>
+        <a data-nav href="/about" data-route="/about">About</a>
       </nav>
       <div class="header-actions">
-        <span class="header-mark">CURATED FOR THE DRIVE</span>
-        <a data-nav href="/cart" class="cart-link" aria-label="View selection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l2.2 11.5a2 2 0 0 0 2 1.6h9.5a2 2 0 0 0 2-1.5L22 7H6"/><circle cx="10" cy="21" r="1"/><circle cx="19" cy="21" r="1"/></svg><span id="header-count" class="count-bubble" hidden>0</span></a>
-        <button class="menu-button" id="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span><span></span></button>
+        <a class="header-cta" href="/catalog" data-nav>Explore parts <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        <a data-nav href="/cart" class="cart-link" aria-label="View saved selection">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 8.5h15l-1.2 12H5.7l-1.2-12ZM9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          <span id="header-count" class="count-bubble" hidden>0</span>
+        </a>
+        <button class="menu-button" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span><span></span></button>
       </div>
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" hidden>
-      <a href="/" data-nav>HOME</a><a href="/catalog" data-nav>PARTS CATALOG</a><a href="/categories" data-nav>CATEGORIES</a><a href="/about" data-nav>THE CONCEPT</a><a href="/cart" data-nav>MY SELECTION</a>
+      <a href="/" data-nav>Home</a>
+      <a href="/catalog" data-nav>Parts catalogue</a>
+      <a href="/categories" data-nav>Categories</a>
+      <a href="/about" data-nav>About AutoPro</a>
+      <a href="/cart" data-nav>Saved selection</a>
     </nav>
   </header>
-  <main id="main-content" tabindex="-1"><div class="loading-view">LOADING AUTOPRO <span class="loading-bar"></span></div></main>
+  <main id="main-content" tabindex="-1"><div class="loading-view">Loading AutoPro <span class="loading-bar"></span></div></main>
   <footer class="footer">
-    <div class="footer-top"><div><div class="footer-logo">AUTO<span>PRO</span><sup>®</sup></div><p>A considered automotive components experience, created for people who care about the details.</p></div><div class="footer-links"><a data-nav href="/">HOME</a><a data-nav href="/catalog">CATALOG</a><a data-nav href="/categories">CATEGORIES</a></div></div>
-    <div class="footer-bottom"><span>© 2026 AUTOPRO — CINEMATIC DESIGN PREVIEW.</span><span>CONCEPT ONLY · NO ORDERS OR PAYMENTS</span></div>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">Auto<span>Pro</span></div>
+        <p>Performance parts, thoughtfully presented. Explore the engineering behind every detail.</p>
+        <span class="footer-caption">A design preview — not an active store.</span>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a data-nav href="/">Home</a><a data-nav href="/catalog">Parts</a><a data-nav href="/categories">Categories</a><a data-nav href="/about">About</a>
+      </nav>
+    </div>
+    <div class="footer-bottom"><span>© 2026 AutoPro. Design preview.</span><span>No products available for purchase · No payments accepted</span></div>
   </footer>
   <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
 </body>
