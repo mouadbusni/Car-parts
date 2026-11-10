@@ -300,5 +300,16 @@ document.getElementById('menu-toggle').addEventListener('click',()=>{
   document.getElementById('menu-toggle').setAttribute('aria-expanded',String(expanded));
   document.getElementById('menu-toggle').setAttribute('aria-label',expanded?'Close menu':'Open menu');
 });
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!document.getElementById('mobile-nav').hidden){
+    closeMenu();document.getElementById('menu-toggle').focus();
+  }
+});
+document.addEventListener('click',event=>{
+  if(!event.target.closest('#site-header')&&!document.getElementById('mobile-nav').hidden)closeMenu();
+});
+window.addEventListener('resize',()=>{
+  if(innerWidth>940&&!document.getElementById('mobile-nav').hidden)closeMenu();
+});
 (async()=>{await loadCatalog();renderRoute(false);})();
 })();
