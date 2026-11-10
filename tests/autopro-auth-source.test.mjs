@@ -9,10 +9,11 @@ const middleware = file('middleware.ts');
 const auth = file('lib/admin-auth.ts');
 const route = file('app/api/admin-session/route.ts');
 const seed = file('scripts/create-admin.js');
+const tsSeed = file('scripts/create-admin.ts');
 const instructions = file('ADMIN_SETUP.md');
 
 test('no default administrator credential or sign-in bypass exists', () => {
-  for (const code of [login,layout,seed]) {
+  for (const code of [login,layout,seed,tsSeed]) {
     assert.doesNotMatch(code, /DEFAULT_ADMIN_EMAIL|DEFAULT_ADMIN_PASSWORD/);
     assert.doesNotMatch(code, /admin@admin\.com|123456/);
     assert.doesNotMatch(code, /getCookieUser|sb-auth-token/);
@@ -27,7 +28,10 @@ test('server must verify token with Supabase Auth and trusted app_metadata role'
   assert.doesNotMatch(auth, /user_metadata\?\.role/);
   assert.match(route, /verifyAdminAccessToken\(token\)/);
   assert.match(route, /httpOnly: true/);
-  assert.match(route, /sameSite: 'lax'/);
+  assert.match(route, /sameSite: 'strict'/);
+  assert.match(route, /isSameOrigin\(request\)/);
+  assert.match(route, /get\('origin'\)/);
+  assert.match(route, /access_token/);
   assert.match(middleware, /verifyAdminAccessToken\(token\)/);
   assert.match(middleware, /\['\/admin\/:path\*', '\/dashboard\/:path\*'\]/);
   assert.doesNotMatch(middleware, /!authToken &&/);
@@ -46,5 +50,8 @@ test('admin provisioning requires a real owner password and trusted role', () =>
   assert.match(seed, /adminPassword\.length < 16/);
   assert.match(seed, /app_metadata: \{ role: 'admin' \}/);
   assert.doesNotMatch(seed, /console\.log\('Password:/);
+  assert.match(tsSeed, /process\.env\.ADMIN_EMAIL/);
+  assert.match(tsSeed, /process\.env\.ADMIN_PASSWORD/);
+  assert.match(tsSeed, /app_metadata: \{ role: 'admin' \}/);
   assert.match(instructions, /rotate that password/i);
 });

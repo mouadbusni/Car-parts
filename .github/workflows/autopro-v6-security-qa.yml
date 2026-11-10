@@ -1,0 +1,57 @@
+name: AutoPro V6 — legacy admin security gate
+
+on:
+  push:
+    branches: ['security/autopro-admin-hardening-v6']
+    paths:
+      - 'app/login/**'
+      - 'app/admin/**'
+      - 'app/api/admin-session/**'
+      - 'lib/admin-auth.ts'
+      - 'middleware.ts'
+      - 'scripts/create-admin.*'
+      - 'ADMIN_SETUP.md'
+      - 'tests/admin-auth.spec.ts'
+      - 'tests/admin-products.spec.ts'
+      - 'tests/autopro-auth-source.test.mjs'
+      - 'cloudflare/cinematic/tests/site.spec.ts'
+      - 'cloudflare/precision-3d/tests/precision.spec.ts'
+      - '.github/workflows/autopro-v6-security-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-security:
+    name: Typecheck and real-browser unauthorized access tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: fake-public-key-for-local-tests-only
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Static security regression checks
+        run: node --test tests/autopro-auth-source.test.mjs
+      - name: Typecheck Next.js frontend and middleware
+        run: npm run typecheck
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify unauthenticated and cookie-forgery denial in browser
+        run: npx playwright test tests/admin-auth.spec.ts tests/admin-products.spec.ts --config playwright.config.ts --project chromium --workers=1 --reporter=line
+      - name: Upload browser traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v6-admin-security-failure-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

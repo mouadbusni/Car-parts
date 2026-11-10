@@ -1,10 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-async function loadAllImages(page){
+async function loadAllImages(page: Page){
   // The catalog and home components render asynchronously after the D1 API resolves.
   await expect(page.locator('[data-version="autopro-refined-v4"]')).toBeVisible();
   await page.evaluate(async()=>{
-    for(const img of document.querySelectorAll('img')){
+    for(const img of Array.from(document.querySelectorAll('img'))){
       img.loading='eager';
       img.scrollIntoView({block:'center',behavior:'instant'});
       if(!img.complete)await new Promise(resolve=>{
@@ -40,7 +40,7 @@ test('all editorial photos load and component studies are not mistaken for produ
   await page.goto('/');
   await loadAllImages(page);
   const photos=await page.locator('img').evaluateAll(images=>
-    images.map(x=>({src:x.getAttribute('src'),width:x.naturalWidth,height:x.naturalHeight,loaded:x.complete}))
+    images.map(x=>{const img=x as HTMLImageElement;return {src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight,loaded:img.complete};})
   );
   const failed=photos.filter(x=>!x.loaded||x.width<400||x.height<400);
   expect(failed).toEqual([]);
@@ -223,7 +223,7 @@ const MOCK_REAL_PRODUCT={
   ],
   specifications:{Type:'Browser test'}
 };
-async function mockRealProduct(page,product=MOCK_REAL_PRODUCT){
+async function mockRealProduct(page: Page,product=MOCK_REAL_PRODUCT){
   await page.route('**/api/categories',route=>route.fulfill({
     status:200,contentType:'application/json',
     body:JSON.stringify({data:[{id:'brakes',slug:'brakes',name:'Braking Systems'}]})
