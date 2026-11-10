@@ -25,6 +25,7 @@ test('header is aligned, legible and without overlapping controls from 320px to 
         slogan:rect('.contact-identity'),tools:rect('.header-tools'),
         menu:rect('#menu-toggle'),
         nav:rect('.nav-strip'),
+        links: Array.from(document.querySelectorAll('.nav-links a')).map(el=>{const b=el.getBoundingClientRect();return {left:b.left,right:b.right};}),
         scrollWidth:document.documentElement.scrollWidth,
         clientWidth:document.documentElement.clientWidth
       };
@@ -38,8 +39,18 @@ test('header is aligned, legible and without overlapping controls from 320px to 
     if(geometry.menu.visible){
       expect(geometry.tools.right,width+' tools/menu').toBeLessThanOrEqual(geometry.menu.left+8);
       expect(geometry.nav.visible,width+' hidden mobile nav').toBe(false);
+      expect(geometry.logo.left,width+' logo must meet left side').toBeLessThanOrEqual(18);
+      expect(geometry.clientWidth-geometry.menu.right,width+' menu must meet right side').toBeLessThanOrEqual(18);
     }else{
       expect(geometry.nav.visible,width+' desktop nav').toBe(true);
+      expect(geometry.logo.left,width+' logo must meet left side').toBeLessThanOrEqual(32);
+      expect(geometry.clientWidth-geometry.tools.right,width+' icons must meet right side').toBeLessThanOrEqual(32);
+      const left=geometry.links[0].left;
+      const right=geometry.links[geometry.links.length-1].right;
+      expect(Math.abs((left+right)/2-geometry.clientWidth/2),width+' lower nav must be page-centered').toBeLessThanOrEqual(2);
+      if(geometry.slogan.visible){
+        expect(Math.abs((geometry.slogan.left+geometry.slogan.right)/2-geometry.clientWidth/2),width+' header tagline must be page-centered').toBeLessThanOrEqual(2);
+      }
     }
     expect(geometry.scrollWidth,width+' document overflow').toBeLessThanOrEqual(geometry.clientWidth+2);
   }
