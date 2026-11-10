@@ -1,8 +1,8 @@
-name: AutoPro V8 — deployed reference-clone browser QA
+name: AutoPro V8 — deployed organized header QA
 
 on:
   push:
-    branches: ['design/autopro-carstore-reference-v8']
+    branches: ['design/autopro-v8-header-organization']
     paths:
       - '.github/workflows/autopro-v8-live-qa.yml'
   workflow_dispatch:
@@ -26,6 +26,13 @@ jobs:
         run: |
           curl -fsS --retry 12 --retry-delay 5 --retry-all-errors "$AUTOPRO_BASE_URL/" > /tmp/autopro-v8-live.html
           grep -q 'AutoPro' /tmp/autopro-v8-live.html
+          grep -q 'logo-main' /tmp/autopro-v8-live.html
+          if curl -fsS "$AUTOPRO_BASE_URL/site.css" | grep -q 'FULL-WIDTH edge anchors above'; then
+            echo "Edge-aligned upper header and centered secondary navigation stylesheet is live"
+          else
+            echo "Expected header alignment stylesheet is missing"
+            exit 1
+          fi
           curl -fsS "$AUTOPRO_BASE_URL/site.css" | grep -q 'category-tile'
           curl -fsS "$AUTOPRO_BASE_URL/app.js" | grep -q 'autopro-carstore-v8'
           test "$(curl -sS -o /dev/null -w '%{http_code}' "$AUTOPRO_BASE_URL/api/products")" = "404"
@@ -42,7 +49,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: autopro-v8-LIVE-reference-clone
+          name: autopro-v8-LIVE-organized-header
           path: cloudflare/carstore-v8/screenshots/
           if-no-files-found: ignore
           retention-days: 14
@@ -50,7 +57,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: autopro-v8-LIVE-errors
+          name: autopro-v8-LIVE-header-errors
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7

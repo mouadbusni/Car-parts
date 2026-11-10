@@ -1,8 +1,8 @@
-name: AutoPro V8 — reference-clone visual quality gate
+name: AutoPro V8 — organized header visual QA
 
 on:
   push:
-    branches: ['design/autopro-carstore-reference-v8']
+    branches: ['design/autopro-v8-header-organization']
     paths:
       - 'cloudflare/carstore-v8/**'
       - 'cloudflare/frontend/**'
