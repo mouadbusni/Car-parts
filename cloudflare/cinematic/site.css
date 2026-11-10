@@ -387,3 +387,10 @@ body{background:var(--bg);color:var(--text);line-height:1.6}
 @media(prefers-reduced-motion:reduce){
   .category-art svg,.component-art,.header-cta{transition:none!important}
 }
+
+
+/* Keep the same two-tone mark in both navigation and footer. */
+.footer-logo{display:flex;align-items:center;gap:11px}
+.footer-logo .brand-symbol{color:#f5f8fc}
+.footer-logo .footer-word{color:#f5f8fc}
+.footer-logo .footer-word em{color:var(--brand-blue);font-style:normal}
