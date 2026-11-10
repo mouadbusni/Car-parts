@@ -4,18 +4,18 @@ const main=document.getElementById('main');
 const toastEl=document.getElementById('toast');
 const SAVE_KEY='autopro:carstore-v8:saved';
 const categories=[
-{id:'engine',name:'HEADLIGHTS & INTAKE',title:'HEADLIGHTS',description:'Lighting, visibility and detail.',art:'headlight'},
+{id:'lighting',name:'HEADLIGHTS',title:'HEADLIGHTS',description:'Projectors, lighting and detail.',art:'headlight'},
 {id:'brakes',name:'BRAKING SYSTEMS',title:'BRAKING SYSTEMS',description:'Rotors, calipers, braking.',art:'caliper'},
-{id:'exhaust',name:'WHEELS & EXHAUST',title:'ALLOY WHEELS',description:'Style, stance and performance.',art:'wheel'},
-{id:'suspension',name:'SEATS & SUSPENSION',title:'SPORT SEATS',description:'Driver-focused control.',art:'seat'}
+{id:'wheels',name:'ALLOY WHEELS',title:'ALLOY WHEELS',description:'Style, stance and performance.',art:'wheel'},
+{id:'seats',name:'SPORT SEATS',title:'SPORT SEATS',description:'Driver-focused comfort.',art:'seat'}
 ];
 const products=[
-{id:'ap-demo-01',slug:'vented-performance-rotor',name:'Vented Performance Rotor',category:'brakes',price:189,art:'rotor',description:'A vented brake-disc design study.'},
+{id:'ap-demo-01',slug:'performance-led-headlight',name:'Performance LED Headlight',category:'lighting',price:300,art:'headlight',description:'Modern projector headlight concept.'},
 {id:'ap-demo-02',slug:'sport-brake-caliper',name:'Sport Brake Caliper',category:'brakes',price:275,art:'caliper',description:'Performance-style caliper component.'},
-{id:'ap-demo-03',slug:'adjustable-coilover-unit',name:'Adjustable Coilover Unit',category:'suspension',price:429,art:'coilover',description:'Compact coilover suspension concept.'},
-{id:'ap-demo-04',slug:'machined-intake-filter',name:'Machined Intake Filter',category:'engine',price:125,art:'filter',description:'Visual study of a performance air filter.'},
-{id:'ap-demo-05',slug:'titanium-exhaust-tip',name:'Titanium Exhaust Tip',category:'exhaust',price:159,art:'exhaust',description:'Precision-styled exhaust finishing piece.'},
-{id:'ap-demo-06',slug:'performance-intercooler',name:'Performance Intercooler',category:'engine',price:320,art:'cooler',description:'Finned heat exchanger illustration.'}
+{id:'ap-demo-03',slug:'racing-bucket-seat',name:'Racing Bucket Seat',category:'seats',price:320,art:'seat',description:'Sport bucket seat design illustration.'},
+{id:'ap-demo-04',slug:'vented-performance-rotor',name:'Vented Performance Rotor',category:'brakes',price:189,art:'rotor',description:'Vented brake-disc design study.'},
+{id:'ap-demo-05',slug:'forged-alloy-wheel',name:'Forged Alloy Wheel',category:'wheels',price:350,art:'wheel',description:'Multi-spoke alloy wheel visual concept.'},
+{id:'ap-demo-06',slug:'headlight-projector-set',name:'LED Projector Set',category:'lighting',price:245,art:'headlight',description:'Pair of compact headlight projector components.'}
 ];
 let saved=loadSaved();
 function loadSaved(){try{const x=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]');return Array.isArray(x)?x.filter(v=>typeof v==='string'&&products.some(p=>p.slug===v)).slice(0,6):[]}catch{return []}}
@@ -63,7 +63,7 @@ function visual(kind){return extraArt(kind).replace(/#719ff0|#6ea5f4|#457cd9|#b6
 function tile(c,i){return '<a data-nav href="/catalog?category='+encodeURIComponent(c.id)+'" class="category-tile" aria-label="Browse '+esc(c.title)+'"><div class="category-copy"><h2>'+esc(c.title)+'</h2><p>'+esc(c.description)+'</p><span class="category-cta">EXPLORE CATEGORY <span>→</span></span></div><div class="category-image">'+visual(c.art)+'</div><span class="category-number">0'+(i+1)+' / 04</span></a>'}
 function productCard(p,i){const added=saved.includes(p.slug);return '<article class="product-card" data-testid="product-card"><a href="/product/'+p.slug+'" data-nav class="product-visual" aria-label="View '+esc(p.name)+'"><span class="photo-flag">CONCEPT / '+String(i+1).padStart(2,'0')+'</span>'+visual(p.art)+'</a><div class="product-info"><span class="product-category">'+esc(categories.find(c=>c.id===p.category)?.title||'PARTS')+'</span><a data-nav href="/product/'+p.slug+'"><h3>'+esc(p.name)+'</h3></a><div class="product-price">'+usd(p.price)+'</div><span class="price-note">SAMPLE PRICE</span><button class="product-action" type="button" data-save="'+p.slug+'" aria-label="'+(added?'Remove':'Save')+' '+esc(p.name)+'">'+(added?'♥ SAVED':'♡ SAVE ITEM')+'</button></div></article>'}
 function showHome(){
-const features=[products[0],products[1],products[3],products[4],products[2]];
+const features=[products[0],products[1],products[2],products[3],products[4]];
 main.innerHTML='<section class="hero" data-version="autopro-carstore-v8"><img src="/media/hero.webp" alt="Cinematic photograph of a performance sports car" fetchpriority="high" width="1500" height="800"><span class="hero-overlay-label"><i></i> AUTOPRO / AUTOMOTIVE PARTS</span></section>'+
 '<section id="categories" aria-label="Automotive part categories" class="category-grid">'+categories.map(tile).join('')+'</section>'+
 '<section class="featured" id="featured"><div class="shell"><div class="section-heading"><h2>FEATURED PRODUCTS</h2></div><div class="featured-grid">'+features.map(productCard).join('')+'</div><div class="featured-more"><a href="/catalog" data-nav>VIEW ALL PARTS →</a></div></div></section>'+
