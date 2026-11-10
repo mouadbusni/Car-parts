@@ -6,8 +6,8 @@ import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../../..');
 const port=Number(process.env.PORT||4177);
 const files=new Map([
- ['/site.css',['cloudflare/cinematic/site.css','text/css; charset=utf-8']],
- ['/app.js',['cloudflare/preview-site/app.js','text/javascript; charset=utf-8']],
+ ['/site.css',['cloudflare/carstore-v8/site.css','text/css; charset=utf-8']],
+ ['/app.js',['cloudflare/carstore-v8/app.js','text/javascript; charset=utf-8']],
  ...['hero','brakes','wheels','lighting','drive'].map(name=>[
    '/media/'+name+'.webp',['cloudflare/cinematic/assets/'+name+'.webp','image/webp']
  ])
@@ -26,7 +26,7 @@ createServer(async(req,res)=>{
   const html=routes.has(path.replace(/\/+$/,'')||'/')||productRoute.test(path);
   if(!mapping&&!html){res.writeHead(404);return res.end('Not found');}
   try{
-    const bytes=await readFile(resolve(root,html?'cloudflare/preview-site/index.html':mapping[0]));
+    const bytes=await readFile(resolve(root,html?'cloudflare/carstore-v8/index.html':mapping[0]));
     res.writeHead(200,{'Content-Type':html?'text/html; charset=utf-8':mapping[1],
       'X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});
     res.end(req.method==='HEAD'?undefined:bytes);

@@ -14,7 +14,7 @@ test('serves standalone page and local assets',async()=>{
   assert.match(css.headers.get('content-type'),/text\/css/);
   const js=await call('/app.js');
   assert.equal(js.status,200);
-  assert.match(await js.text(),/autopro-frontend-v7/);
+  assert.match(await js.text(),/autopro-carstore-v8/);
 });
 test('all five editorial WebPs have nonempty valid signatures',async()=>{
   for(const name of ['hero','brakes','wheels','lighting','drive']){

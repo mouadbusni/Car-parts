@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1b1b">
+  <meta name="description" content="AutoPro automotive parts frontend concept. Explore performance categories, illustrated components and a saved-parts shortlist. This is a design preview, not a live shop.">
+  <title>AutoPro | Automotive Parts Design Preview</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%231b1b1b'/%3E%3Ctext x='24' y='33' font-family='Arial' font-weight='900' font-size='29' text-anchor='middle' fill='white'%3EAP%3C/text%3E%3Cpath d='M6 40h36' stroke='%23d92d42' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/site.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="utility-bar">
+    <div class="shell utility-inner">
+      <span class="utility-status"><span class="status-dot" aria-hidden="true"></span> AUTOPRO DESIGN SHOWCASE · NO LIVE SALES</span>
+      <div class="utility-right">
+        <a href="/about" data-nav>About this preview</a>
+        <a href="/cart" data-nav>Saved parts <span id="top-saved-count">0</span></a>
+        <button id="header-search-button" type="button" aria-label="Search parts" title="Search parts">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <header class="site-header" id="site-header">
+    <div class="shell main-header">
+      <a href="/" class="logo" data-nav aria-label="AutoPro homepage">
+        <span class="logo-line">Auto<span>Pro</span></span>
+        <small>BEST CAR PARTS</small>
+      </a>
+      <div class="contact-identity" aria-label="AutoPro design concept">
+        <span class="contact-icon" aria-hidden="true">✦</span>
+        <span><strong>BUILT FOR THE DRIVE</strong><small>PRECISION AUTOMOTIVE / FRONTEND EDITION</small></span>
+      </div>
+      <div class="header-tools">
+        <a href="/cart" class="tool-link" data-nav aria-label="Open saved components">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 4.6 13.7a4.7 4.7 0 0 1 6.6-6.6L12 8l.8-.9a4.7 4.7 0 0 1 6.6 6.6Z"/></svg>
+          <span>WISHLIST</span>
+        </a>
+        <a href="/catalog" class="tool-link" data-nav aria-label="Browse component comparisons">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg>
+          <span>COMPARE</span>
+        </a>
+        <a href="/cart" class="tool-link" data-nav aria-label="Saved parts shortlist">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14l-1 17-6-4-6 4-1-17Z"/></svg>
+          <span>MY SAVED <span class="count" id="saved-count">0</span></span>
+        </a>
+      </div>
+      <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Open navigation" aria-controls="main-nav" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+    <nav class="nav-strip" id="main-nav" aria-label="Primary navigation">
+      <div class="shell nav-links">
+        <a data-nav href="/" class="current">HOME</a>
+        <a data-nav href="/catalog">PRODUCTS</a>
+        <a href="/#categories" data-nav>SERVICES</a>
+        <a href="/#featured" data-nav>FEATURED</a>
+        <a href="/about" data-nav>ABOUT</a>
+        <a href="/#contact" data-nav>CONTACTS</a>
+      </div>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1"><div class="loading">LOADING AUTOPRO <span class="loading-tick"></span></div></main>
+  <footer class="footer" id="contact">
+    <div class="shell footer-grid">
+      <section><h3>QUICK LINKS</h3><a data-nav href="/">Home</a><a data-nav href="/catalog">Products</a><a data-nav href="/categories">Categories</a><a data-nav href="/about">About AutoPro</a></section>
+      <section><h3>OUR COLLECTIONS</h3><a data-nav href="/catalog?category=lighting">Headlights</a><a data-nav href="/catalog?category=brakes">Braking</a><a data-nav href="/catalog?category=wheels">Alloy wheels</a><a data-nav href="/catalog?category=seats">Sport seats</a></section>
+      <section><h3>MORE INFORMATION</h3><a href="/#featured" data-nav>Featured parts</a><a href="/#promo" data-nav>Our collections</a><a href="/cart" data-nav>Saved selections</a><span>Demo interface only</span></section>
+      <section class="newsletter"><h3>NEWSLETTER</h3><p>Stay in the loop with the AutoPro design concept.</p><form id="newsletter-form"><label for="newsletter-email" class="sr-only">Your email</label><input type="email" id="newsletter-email" placeholder="Your email address" autocomplete="off" required maxlength="120"><button type="submit" aria-label="Newsletter preview submit">→</button></form><small>Preview only. We don't collect or store emails.</small></section>
+    </div>
+    <div class="shell footer-bottom"><span>© 2026 AutoPro. Automotive design concept.</span><span>Illustrative products & sample prices · Orders unavailable</span></div>
+  </footer>
+  <div id="toast" class="toast" aria-live="polite" role="status" hidden></div>
+</body>
+</html>
