@@ -13,7 +13,8 @@ test('frontend-only concept loads without any inventory API requests',async({pag
   await expect(page.locator('.product-card')).toHaveCount(3);
   await expect(page.getByText('VISUAL CONCEPT').first()).toBeVisible();
   expect(apiCalls).toEqual([]);
-  await expect(page.locator('.hero-details')).toBeVisible({visible:!isMobile});
+  if(isMobile)await expect(page.locator('.hero-details')).toBeHidden();
+  else await expect(page.locator('.hero-details')).toBeVisible();
   await expect(page.locator('.hero-details')).toHaveCount(1);
   const css=await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(css).toBe('rgb(9, 15, 25)');
