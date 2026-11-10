@@ -108,19 +108,35 @@ const ICONS={
 };
 const uiIcon=name=>ICONS[name]||'';
 // Keep editorial car photos out of product listings.
-function verifiedProductImage(product){
-  const raw=String(product.image_url||'').trim();
-  if(!raw)return '';
-  try{
-    const url=new URL(raw,location.origin);
-    return url.origin===location.origin&&/^\/(?:media|uploads)\//.test(url.pathname)?url.pathname+url.search:'';
-  }catch{return '';}
+// Product media is deliberately separated from editorial photography.
+// Only same-origin, SKU-specific media paths can be rendered as inventory photos.
+const PRODUCT_MEDIA_RE=/^\/media\/products\/(?:[a-z0-9][a-z0-9_-]{0,79}\/){0,2}[a-z0-9][a-z0-9_-]{0,79}\.(?:webp|jpe?g|png)$/;
+function verifiedProductImage(raw){
+  if(typeof raw!=='string'||raw.length>220)return '';
+  const path=raw.trim();
+  return PRODUCT_MEDIA_RE.test(path)?path:'';
+}
+function productImages(product){
+  if(product.demo)return [];
+  const potential=[product.image_url,...(Array.isArray(product.gallery)?product.gallery:[])];
+  return [...new Set(potential.map(verifiedProductImage).filter(Boolean))].slice(0,6);
+}
+function imagePlaceholder(){
+  return '<div class="product-media-unavailable" role="img" aria-label="Verified product photograph unavailable"><span>IMAGE PENDING</span><small>VERIFIED PRODUCT PHOTO REQUIRED</small></div>';
 }
 function productMedia(product){
-  const image=verifiedProductImage(product);
-  if(!product.demo&&image)return `<img class="product-photo" src="${esc(image)}" alt="Product photo of ${esc(product.name)}" loading="lazy" width="900" height="900">`;
-  if(!product.demo)return '<div class="product-media-unavailable" role="img" aria-label="Product photograph not yet available"><span>IMAGE PENDING</span><small>VERIFIED PRODUCT PHOTO REQUIRED</small></div>';
+  const image=productImages(product)[0];
+  if(image)return `<img class="product-photo" src="${esc(image)}" alt="Product photo of ${esc(product.name)}" loading="lazy" width="900" height="900">`;
+  if(!product.demo)return imagePlaceholder();
   return `<div class="component-visual" role="img" aria-label="Illustrative technical drawing of ${esc(product.name)}; not an actual product photo"><span class="component-index">AUTOPRO / COMPONENT STUDY</span><div class="component-art">${artwork(product)}</div><span class="component-illustration-note">ILLUSTRATION · NOT ACTUAL INVENTORY</span></div>`;
+}
+function productDetailGallery(product){
+  const images=productImages(product);
+  if(!images.length){
+    return `<div class="detail-media-column"><div class="detail-art">${productMedia(product)}<span class="detail-badge">${product.demo?'DEMO PRODUCT — NOT FOR SALE':'STAGING CATALOG ITEM'}</span></div></div>`;
+  }
+  const thumbnails=images.length>1?`<div class="detail-thumbnails" role="group" aria-label="Product photo gallery">${images.map((image,index)=>`<button type="button" class="detail-thumb${index===0?' active':''}" data-gallery-image="${esc(image)}" aria-pressed="${index===0?'true':'false'}" aria-label="Show photo ${index+1} of ${images.length} for ${esc(product.name)}"><img src="${esc(image)}" alt="" width="100" height="100" loading="lazy"></button>`).join('')}</div>`:'';
+  return `<div class="detail-media-column"><div class="detail-art"><img class="product-photo detail-primary-photo" id="detail-main-image" src="${esc(images[0])}" alt="Product photo 1 of ${images.length}: ${esc(product.name)}" width="900" height="900"><span class="detail-badge">STAGING CATALOG ITEM</span></div>${thumbnails}</div>`;
 }
 function categoryArtwork(category){
   const key=String(category.id||category.slug||'').toLowerCase();
@@ -234,7 +250,7 @@ function detailPage(slug){
   const p=activeProducts().find(x=>x.slug===slug);
   if(!p){main.innerHTML=intro('PRODUCT DETAILS','COMPONENT NOT <span class="accent">FOUND.</span>','This item does not exist in the current preview catalogue.')+`<section class="section"><div class="container"><a data-nav href="/catalog" class="btn btn-outline">BACK TO CATALOG ↗</a></div></section>`;return}
   const specs=Object.entries(p.specifications||{}).slice(0,6);
-  main.innerHTML=`<section class="page-top"><div class="container"><div class="bread"><a data-nav href="/">HOME</a> / <a data-nav href="/catalog">CATALOG</a> / <b>${esc(p.name)}</b></div><div class="eyebrow">COMPONENT INSPECTION</div><h1>THE <span class="accent">DETAILS.</span></h1></div></section><section class="section"><div class="container">${notice()}<div class="detail-layout"><div class="detail-art">${productMedia(p)}<span class="detail-badge">${p.demo?'DEMO PRODUCT — NOT FOR SALE':'STAGING CATALOG ITEM'}</span></div><div class="detail-body"><div class="eyebrow">${esc(p.brand||'AUTOPRO')} / ${esc(p.sku)}</div><h1>${esc(p.name)}</h1><p class="description">${esc(p.description||'Component details are being prepared.')}</p><div class="divider"></div><div class="detail-price">${money(p.price)}</div><p class="subtle">${p.demo?'ILLUSTRATIVE AMOUNT ONLY — NO ACTUAL INVENTORY':'STAGING CATALOGUE — NO CHECKOUT ENABLED'}</p><div class="qty-row"><div class="qty-stepper"><button aria-label="Decrease quantity" data-detail-delta="-1" ${detailQuantity<=1?'disabled':''}>−</button><output id="detail-qty">${detailQuantity}</output><button aria-label="Increase quantity" data-detail-delta="1" ${detailQuantity>=6?'disabled':''}>+</button></div><button type="button" data-detail-add="${esc(p.slug)}" class="btn btn-primary">ADD TO PREVIEW SELECTION ↗</button></div><a data-nav href="/cart" class="inline-link">VIEW MY SELECTION <span class="arrow">↗</span></a><div class="detail-specs">${specs.map(([k,v])=>`<div class="spec-item"><span>${esc(k.toUpperCase())}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div></div></div></section>`;
+  main.innerHTML=`<section class="page-top"><div class="container"><div class="bread"><a data-nav href="/">HOME</a> / <a data-nav href="/catalog">CATALOG</a> / <b>${esc(p.name)}</b></div><div class="eyebrow">COMPONENT INSPECTION</div><h1>THE <span class="accent">DETAILS.</span></h1></div></section><section class="section"><div class="container">${notice()}<div class="detail-layout">${productDetailGallery(p)}<div class="detail-body"><div class="eyebrow">${esc(p.brand||'AUTOPRO')} / ${esc(p.sku)}</div><h1>${esc(p.name)}</h1><p class="description">${esc(p.description||'Component details are being prepared.')}</p><div class="divider"></div><div class="detail-price">${money(p.price)}</div><p class="subtle">${p.demo?'ILLUSTRATIVE AMOUNT ONLY — NO ACTUAL INVENTORY':'STAGING CATALOGUE — NO CHECKOUT ENABLED'}</p><div class="qty-row"><div class="qty-stepper"><button aria-label="Decrease quantity" data-detail-delta="-1" ${detailQuantity<=1?'disabled':''}>−</button><output id="detail-qty">${detailQuantity}</output><button aria-label="Increase quantity" data-detail-delta="1" ${detailQuantity>=6?'disabled':''}>+</button></div><button type="button" data-detail-add="${esc(p.slug)}" class="btn btn-primary">ADD TO PREVIEW SELECTION ↗</button></div><a data-nav href="/cart" class="inline-link">VIEW MY SELECTION <span class="arrow">↗</span></a><div class="detail-specs">${specs.map(([k,v])=>`<div class="spec-item"><span>${esc(k.toUpperCase())}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div></div></div></section>`;
 }
 function cartPage(){
   const savedPool=demoMode?DEMO_PRODUCTS:products;
@@ -269,6 +285,29 @@ function closeMenu(){document.getElementById('mobile-nav').hidden=true;document.
 document.addEventListener('click',event=>{
   const anchor=event.target.closest('a[data-nav]');
   if(anchor&&event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();closeMenu();go(anchor.getAttribute('href'));return;}
+  const thumb=event.target.closest('[data-gallery-image]');
+  if(thumb){
+    const slug=location.pathname.startsWith('/product/')?location.pathname.split('/').pop():'';
+    const product=activeProducts().find(p=>p.slug===slug);
+    const image=thumb.dataset.galleryImage;
+    const images=product?productImages(product):[];
+    if(images.includes(image)){
+      const mainImage=document.getElementById('detail-main-image');
+      if(mainImage){
+        mainImage.hidden=false;
+        const oldFallback=mainImage.parentElement.querySelector('.product-media-unavailable');
+        if(oldFallback)oldFallback.remove();
+        mainImage.src=image;
+        mainImage.alt='Product photo '+(images.indexOf(image)+1)+' of '+images.length+': '+product.name;
+        document.querySelectorAll('.detail-thumb').forEach(button=>{
+          const active=button===thumb;
+          button.classList.toggle('active',active);
+          button.setAttribute('aria-pressed',String(active));
+        });
+      }
+    }
+    return;
+  }
   const add=event.target.closest('[data-add]');
   if(add){addItem(add.dataset.add);return;}
   const detailAdd=event.target.closest('[data-detail-add]');
@@ -301,6 +340,30 @@ document.getElementById('menu-toggle').addEventListener('click',()=>{
   document.getElementById('menu-toggle').setAttribute('aria-expanded',String(expanded));
   document.getElementById('menu-toggle').setAttribute('aria-label',expanded?'Close menu':'Open menu');
 });
+// Broken product media must never expose a browser broken-image icon.
+document.addEventListener('error',event=>{
+  const img=event.target;
+  if(!(img instanceof HTMLImageElement))return;
+  const thumb=img.closest('.detail-thumb');
+  if(thumb){
+    thumb.classList.add('is-unavailable');
+    thumb.disabled=true;
+    thumb.setAttribute('aria-label','Product photo unavailable');
+    img.remove();
+    thumb.insertAdjacentHTML('beforeend','<span class="thumb-unavailable">Unavailable</span>');
+    return;
+  }
+  if(!img.classList.contains('product-photo'))return;
+  if(img.classList.contains('detail-primary-photo')){
+    img.hidden=true;
+    if(!img.parentElement.querySelector('.product-media-unavailable')){
+      img.insertAdjacentHTML('afterend',imagePlaceholder());
+    }
+  }else{
+    img.insertAdjacentHTML('afterend',imagePlaceholder());
+    img.remove();
+  }
+},true);
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&!document.getElementById('mobile-nav').hidden){
     closeMenu();document.getElementById('menu-toggle').focus();

@@ -1,0 +1,80 @@
+name: AutoPro V5 — catalog media readiness QA
+
+on:
+  push:
+    branches: ['feature/autopro-media-readiness-v5']
+    paths:
+      - 'cloudflare/preview-site/**'
+      - 'cloudflare/cinematic/**'
+      - 'cloudflare/inventory/**'
+      - '.github/workflows/autopro-v5-media-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  media-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AUTOPRO_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check UI and Worker JavaScript syntax
+        run: |
+          node --check cloudflare/preview-site/app.js
+          node --check cloudflare/cinematic/worker.mjs
+          node --check cloudflare/cinematic/tests/local-server.mjs
+      - name: Unit test Worker routing and inventory manifest preflight
+        run: node --test cloudflare/cinematic/tests/media-worker.test.mjs cloudflare/inventory/tests/validate-manifest.test.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated QA server with no real inventory
+        run: |
+          node cloudflare/cinematic/tests/local-server.mjs > /tmp/autopro-v5-local.log 2>&1 &
+          for n in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/autopro-v5-local.log
+          exit 1
+      - name: Create screenshot directory
+        run: mkdir -p cloudflare/cinematic/screenshots
+      - name: Desktop and mobile Chromium regression
+        run: npx playwright test --config cloudflare/cinematic/playwright.config.ts --workers=1
+      - name: Validate screenshot files
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          for name in ('desktop.jpg','mobile.jpg'):
+              p=Path('cloudflare/cinematic/screenshots')/name
+              im=Image.open(p).convert('RGB')
+              assert im.width>=390 and im.height>=844,(name,im.size)
+              assert max(ImageStat.Stat(im).stddev)>25,(name,'Low-content capture')
+              print(name,im.size,p.stat().st_size)
+          PY
+      - name: Save review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v5-desktop-mobile-review
+          path: cloudflare/cinematic/screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Save browser failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v5-failure-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

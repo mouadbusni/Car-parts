@@ -21,6 +21,34 @@ const HEADERS={
 };
 const ALLOWED=new Set(['/','/home','/catalog','/products','/categories','/cart','/about']);
 const PRODUCT_PATH=/^\/product\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/;
+const PRODUCT_MEDIA_PATH=/^\/media\/products\/(?:[a-z0-9][a-z0-9_-]{0,79}\/){0,2}[a-z0-9][a-z0-9_-]{0,79}\.(webp|jpg|jpeg|png)$/;
+const PRODUCT_MEDIA_TYPES=Object.freeze({webp:'image/webp',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'});
+const MAX_PRODUCT_IMAGE_SIZE=6*1024*1024;
+async function handleProductPhoto(request,env,path){
+  const match=PRODUCT_MEDIA_PATH.exec(path);
+  // The binding is intentionally optional until an approved, rights-cleared
+  // product-media bucket is provisioned. Editorial assets are never substituted.
+  if(!match||!env.PRODUCT_MEDIA)return send('Not found','text/plain; charset=utf-8',404);
+  const key=path.slice(1);
+  try{
+    const object=request.method==='HEAD'
+      ?await env.PRODUCT_MEDIA.head(key)
+      :await env.PRODUCT_MEDIA.get(key);
+    if(!object||object.size>MAX_PRODUCT_IMAGE_SIZE)return send('Not found','text/plain; charset=utf-8',404);
+    return new Response(request.method==='HEAD'?null:object.body,{
+      status:200,
+      headers:{
+        ...HEADERS,
+        'Content-Type':PRODUCT_MEDIA_TYPES[match[1]],
+        'Cache-Control':'public, max-age=86400',
+        'Content-Length':String(object.size),
+      },
+    });
+  }catch{
+    return send('Media temporarily unavailable','text/plain; charset=utf-8',503);
+  }
+}
+
 function send(body,contentType,status=200,cache='no-cache'){
   return new Response(body,{status,headers:{...HEADERS,'Content-Type':contentType,'Cache-Control':cache}});
 }
@@ -37,6 +65,7 @@ export default {
     if(!['GET','HEAD'].includes(request.method)){
       return send('Method not allowed','text/plain; charset=utf-8',405);
     }
+    if(path.startsWith('/media/products/'))return handleProductPhoto(request,env,path);
     if(path.startsWith('/media/')){
       const name=path.slice('/media/'.length);
       if(!Object.prototype.hasOwnProperty.call(MEDIA,name))
