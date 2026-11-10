@@ -270,6 +270,24 @@ test('missing product photo is replaced by a visible placeholder, not a broken i
   await expect(page.locator('.product-card img.product-photo')).toHaveCount(0);
 });
 
+test('a broken gallery thumbnail becomes unavailable and another image remains usable',async({page})=>{
+  await mockRealProduct(page);
+  const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+UXocAAAAASUVORK5CYII=','base64');
+  await page.route('**/media/products/**',route=>{
+    if(route.request().url().endsWith('/qa-rotor-front.webp'))
+      return route.fulfill({status:404,body:'Not found'});
+    return route.fulfill({status:200,contentType:'image/png',body:tinyPng});
+  });
+  await page.goto('/product/qa-rotor');
+  const thumbs=page.locator('.detail-thumb');
+  await expect(thumbs.first()).toBeDisabled();
+  await expect(thumbs.first()).toContainText('Unavailable');
+  await expect(page.locator('.detail-art .product-media-unavailable')).toBeVisible();
+  await thumbs.nth(1).click();
+  await expect(page.locator('#detail-main-image')).toHaveAttribute('src','/media/products/brakes/qa-rotor-side.webp');
+  await expect(page.locator('.detail-art .product-media-unavailable')).toHaveCount(0);
+});
+
 test('capture actual photography-loaded screenshots for review',async({page},testInfo)=>{
   await page.goto('/');
   await expect(page.locator('.hero-title')).toBeVisible();
