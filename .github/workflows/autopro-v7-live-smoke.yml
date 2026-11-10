@@ -1,0 +1,57 @@
+name: AutoPro V7 — live Cloudflare frontend verification
+
+on:
+  push:
+    branches: ['design/autopro-frontend-v7-deploy']
+    paths:
+      - '.github/workflows/autopro-v7-live-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Verify actually deployed V7 at isolated workers.dev URL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AUTOPRO_BASE_URL: https://autopro-v7-design-preview.mouadbusni.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Check live hostname, routes and public status
+        run: |
+          curl -fsS --retry 12 --retry-delay 5 --retry-all-errors "$AUTOPRO_BASE_URL/" > /tmp/autopro-live.html
+          grep -q 'AutoPro' /tmp/autopro-live.html
+          curl -fsS --retry 5 --retry-delay 3 "$AUTOPRO_BASE_URL/site.css" | grep -q 'AUTOPRO / FRONTEND CONCEPT 07'
+          curl -fsS --retry 5 --retry-delay 3 "$AUTOPRO_BASE_URL/app.js" | grep -q 'autopro-frontend-v7'
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$AUTOPRO_BASE_URL/api/products")" = "404"
+          echo "Actual V7 Cloudflare homepage, CSS, JS and disabled API verified"
+      - name: Install locked browser dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Create screenshots directory
+        run: mkdir -p cloudflare/frontend/screenshots
+      - name: Test live site with desktop/mobile Chromium
+        run: npx playwright test --config cloudflare/frontend/playwright.config.ts --workers=1
+      - name: Upload screenshots of deployed Worker
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v7-LIVE-desktop-mobile
+          path: cloudflare/frontend/screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload error traces if live validation fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v7-LIVE-error-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
