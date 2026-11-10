@@ -343,7 +343,17 @@ document.getElementById('menu-toggle').addEventListener('click',()=>{
 // Broken product media must never expose a browser broken-image icon.
 document.addEventListener('error',event=>{
   const img=event.target;
-  if(!(img instanceof HTMLImageElement)||!img.classList.contains('product-photo'))return;
+  if(!(img instanceof HTMLImageElement))return;
+  const thumb=img.closest('.detail-thumb');
+  if(thumb){
+    thumb.classList.add('is-unavailable');
+    thumb.disabled=true;
+    thumb.setAttribute('aria-label','Product photo unavailable');
+    img.remove();
+    thumb.insertAdjacentHTML('beforeend','<span class="thumb-unavailable">Unavailable</span>');
+    return;
+  }
+  if(!img.classList.contains('product-photo'))return;
   if(img.classList.contains('detail-primary-photo')){
     img.hidden=true;
     if(!img.parentElement.querySelector('.product-media-unavailable')){
