@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 async function loadAllImages(page){
   // The catalog and home components render asynchronously after the D1 API resolves.
-  await expect(page.locator('[data-version="cinematic-photo-v3"]')).toBeVisible();
+  await expect(page.locator('[data-version="autopro-refined-v4"]')).toBeVisible();
   await page.evaluate(async()=>{
     for(const img of document.querySelectorAll('img')){
       img.loading='eager';
@@ -17,21 +17,25 @@ async function loadAllImages(page){
   });
 }
 
-test('cinematic photo hero and new identity are live',async({page})=>{
+test('refined AutoPro identity and useful hero are live',async({page})=>{
   await page.goto('/');
-  await expect(page.locator('[data-version="cinematic-photo-v3"]')).toBeVisible();
-  await expect(page.locator('.hero-title')).toContainText('Built for');
-  await expect(page.locator('.hero-title')).toContainText('what moves');
+  await expect(page.locator('[data-version="autopro-refined-v4"]')).toBeVisible();
+  await expect(page.locator('.hero-title')).toContainText('The details');
+  await expect(page.locator('.hero-title')).toContainText('drive');
   await expect(page.locator('.hero-background img')).toBeVisible();
   await expect(page.locator('.photo-duo img')).toHaveCount(2);
   await expect(page.locator('.category-gallery .category-photo')).toHaveCount(3);
+  await expect(page.locator('.category-gallery .category-visual')).toHaveCount(3);
+  await expect(page.locator('.product-card .component-visual')).toHaveCount(3);
   await expect(page.locator('.product-card')).toHaveCount(3);
   await expect(page.getByText('DEMO CATALOGUE').first()).toBeVisible();
-  expect(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(12, 17, 18)');
+  expect(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(11, 17, 27)');
+  await expect(page.locator('header .brand-word')).toContainText('Auto');
+  await expect(page.locator('header .header-cta')).toBeVisible();
   expect(await page.locator('#brake-canvas').count()).toBe(0);
 });
 
-test('all five self-hosted editorial photos actually load at full size',async({page,request})=>{
+test('all editorial photos load and component studies are not mistaken for product photos',async({page,request})=>{
   await page.goto('/');
   await loadAllImages(page);
   const photos=await page.locator('img').evaluateAll(images=>
@@ -39,7 +43,9 @@ test('all five self-hosted editorial photos actually load at full size',async({p
   );
   const failed=photos.filter(x=>!x.loaded||x.width<400||x.height<400);
   expect(failed).toEqual([]);
-  expect(photos.length).toBeGreaterThanOrEqual(8);
+  expect(photos.length).toBeGreaterThanOrEqual(4);
+  expect(await page.locator('.product-card .product-art img').count()).toBe(0);
+  await expect(page.locator('.product-card .component-visual')).toHaveCount(3);
   for(const name of ['hero','brakes','wheels','lighting','drive']){
     const response=await request.get('/media/'+name+'.webp');
     expect(response.ok(),name).toBe(true);
@@ -71,8 +77,9 @@ test('category and product detail pages preserve genuine editorial photos',async
   await page.getByRole('link',{name:/View Vented Performance Rotor/}).first().click();
   await expect(page).toHaveURL(/\/product\/vented-performance-rotor/);
   await expect(page.locator('.detail-body h1')).toContainText('Vented Performance Rotor');
-  await expect(page.locator('.detail-art img')).toBeVisible();
-  await expect(page.locator('.detail-art img')).toHaveJSProperty('complete',true);
+  await expect(page.locator('.detail-art .component-visual')).toBeVisible();
+  await expect(page.locator('.detail-art .component-art svg')).toBeVisible();
+  expect(await page.locator('.detail-art .component-visual').getAttribute('aria-label')).toContain('Vented Performance Rotor');
   await expect(page.getByText('DEMO PRODUCT — NOT FOR SALE')).toBeVisible();
 });
 
@@ -108,6 +115,40 @@ test('anonymous admin/checkout and public writes remain blocked',async({request}
   expect((await request.post('/api/products',{data:{id:'spoofed'}})).status()).toBe(405);
   expect((await request.delete('/api/products/foo')).status()).toBe(405);
   expect((await request.put('/cart',{data:'no'})).status()).toBe(405);
+});
+
+test('all six demonstration items use their matching technical part visuals',async({page})=>{
+  await page.goto('/catalog');
+  const pairs=[
+    ['Vented Performance Rotor','brake rotor'],
+    ['Adjustable Coilover Unit','coilover'],
+    ['Machined Intake Filter','air filter'],
+    ['Sport Brake Caliper','brake caliper'],
+    ['Performance Intercooler','intercooler'],
+    ['Titanium Exhaust Tip','exhaust']
+  ];
+  await expect(page.locator('.product-card')).toHaveCount(pairs.length);
+  for(const [name,type] of pairs){
+    const card=page.locator('.product-card').filter({has:page.getByRole('heading',{name})});
+    await expect(card.locator('.product-art .component-visual')).toBeVisible();
+    expect(await card.locator('.component-art svg').getAttribute('aria-label')).toContain(type);
+    expect(await card.locator('.component-visual').getAttribute('aria-label')).toContain(name);
+    await expect(card.locator('.product-art img')).toHaveCount(0);
+  }
+});
+
+test('navigation uses one icon style and highlights the current section',async({page,isMobile})=>{
+  await page.goto('/catalog');
+  await expect(page.locator('header .brand-symbol svg')).toBeVisible();
+  await expect(page.locator('header .cart-link svg')).toBeVisible();
+  if(isMobile){
+    await page.locator('#menu-toggle').click();
+    await expect(page.locator('#mobile-nav a[href="/catalog"]')).toHaveAttribute('aria-current','page');
+    await page.locator('#menu-toggle').click();
+    await expect(page.locator('#mobile-nav')).toBeHidden();
+  }else{
+    await expect(page.locator('.desktop-nav a[href="/catalog"]')).toHaveAttribute('aria-current','page');
+  }
 });
 
 test('desktop and mobile navigation work with no horizontal overflow',async({page,isMobile})=>{
