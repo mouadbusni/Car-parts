@@ -138,3 +138,48 @@
   .tool-link svg{height:20px;width:20px}
   .menu-toggle{width:35px;height:35px;margin-left:4px}
 }
+
+/* Header alignment correction requested by owner:
+   FULL-WIDTH edge anchors above; truly centered links below. */
+@media(min-width:761px){
+  .main-header.shell{
+    width:calc(100% - 56px);
+    max-width:none;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) max-content minmax(0,1fr);
+    column-gap:18px;
+    align-items:center;
+  }
+  .main-header .logo{
+    grid-column:1;
+    justify-self:start;
+    margin:0;
+  }
+  .main-header .contact-identity{
+    grid-column:2;
+    justify-self:center;
+    margin:0;
+  }
+  .main-header .header-tools{
+    grid-column:3;
+    justify-self:end;
+    margin:0;
+  }
+  .nav-links.shell{
+    width:calc(100% - 56px);
+    max-width:none;
+    display:flex;
+    justify-content:center;
+    align-items:stretch;
+    gap:4px;
+  }
+}
+@media(max-width:760px){
+  .main-header.shell{
+    width:calc(100% - 28px);
+    max-width:none;
+    justify-content:space-between;
+  }
+  .main-header .logo{margin-right:auto}
+  .main-header .header-tools{margin-left:auto}
+}
