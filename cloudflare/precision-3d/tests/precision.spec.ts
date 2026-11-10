@@ -29,7 +29,7 @@ test('on a WebGL-capable device the actual Three.js model renders and explodes',
   await expect(canvas).toHaveAttribute('data-webgl','ready',{timeout:20000});
   await expect(page.locator('#model-fallback')).toBeHidden();
   await expect(page.locator('#webgl-state')).toContainText('LIVE WEBGL 3D');
-  const size=await canvas.evaluate(x=>({w:x.width,h:x.height,pixels:x.width*x.height}));
+  const size=await canvas.evaluate(x=>{const c=x as HTMLCanvasElement;return {w:c.width,h:c.height,pixels:c.width*c.height};});
   expect(size.w).toBeGreaterThan(200);
   expect(size.pixels).toBeGreaterThan(100000);
   const toggle=page.locator('[data-explode]');
@@ -38,7 +38,7 @@ test('on a WebGL-capable device the actual Three.js model renders and explodes',
   await expect(toggle).toContainText('ASSEMBLED VIEW');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed','false');
-  const errors=await page.evaluate(()=>document.querySelector('#brake-canvas')?.dataset.webgl);
+  const errors=await page.evaluate(()=>(document.querySelector('#brake-canvas') as HTMLCanvasElement | null)?.dataset.webgl);
   expect(errors).toBe('ready');
 });
 
