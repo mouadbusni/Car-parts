@@ -201,6 +201,75 @@ test('desktop and mobile navigation work with no horizontal overflow',async({pag
   }
 });
 
+
+const MOCK_REAL_PRODUCT={
+  id:'qa-component-001',
+  category_id:'brakes',
+  slug:'qa-rotor',
+  name:'QA Rotor Test Fixture',
+  brand:'AUTOPRO QA',
+  sku:'QA-001',
+  description:'Isolated browser test product. Not inventory.',
+  price:0,
+  stock_quantity:0,
+  is_featured:false,
+  image_url:'/media/products/brakes/qa-rotor-front.webp',
+  gallery:[
+    '/media/products/brakes/qa-rotor-side.webp',
+    '/media/products/brakes/qa-rotor-front.webp',
+    'https://example.org/unapproved.webp',
+    '/media/drive.webp',
+    'javascript:alert(1)'
+  ],
+  specifications:{Type:'Browser test'}
+};
+async function mockRealProduct(page,product=MOCK_REAL_PRODUCT){
+  await page.route('**/api/categories',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({data:[{id:'brakes',slug:'brakes',name:'Braking Systems'}]})
+  }));
+  await page.route('**/api/products?*',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({data:[product]})
+  }));
+}
+test('real product gallery only accepts local SKU-specific media and supports thumbnail selection',async({page})=>{
+  await mockRealProduct(page);
+  const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+UXocAAAAASUVORK5CYII=','base64');
+  await page.route('**/media/products/**',route=>route.fulfill({
+    status:200,contentType:'image/png',body:tinyPng
+  }));
+  await page.goto('/product/qa-rotor');
+  await expect(page.locator('.detail-thumbnails .detail-thumb')).toHaveCount(2);
+  const main=page.locator('#detail-main-image');
+  await expect(main).toHaveAttribute('src','/media/products/brakes/qa-rotor-front.webp');
+  await page.locator('.detail-thumb').nth(1).click();
+  await expect(main).toHaveAttribute('src','/media/products/brakes/qa-rotor-side.webp');
+  await expect(page.locator('.detail-thumb').nth(1)).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.detail-thumb').first()).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('.detail-art .product-media-unavailable')).toHaveCount(0);
+});
+test('unapproved and external product images show a truthful placeholder',async({page})=>{
+  await mockRealProduct(page,{
+    ...MOCK_REAL_PRODUCT,
+    image_url:'https://unapproved.example/qa.webp',
+    gallery:['/media/hero.webp','/uploads/qa-rotor.webp','/media/products/qa.svg']
+  });
+  await page.goto('/catalog');
+  await expect(page.locator('.product-card .product-media-unavailable')).toBeVisible();
+  await expect(page.locator('.product-card .product-photo')).toHaveCount(0);
+  await page.goto('/product/qa-rotor');
+  await expect(page.locator('.detail-art .product-media-unavailable')).toBeVisible();
+  await expect(page.locator('.detail-thumbnails')).toHaveCount(0);
+});
+test('missing product photo is replaced by a visible placeholder, not a broken icon',async({page})=>{
+  await mockRealProduct(page);
+  await page.route('**/media/products/**',route=>route.fulfill({status:404,body:'Not found'}));
+  await page.goto('/catalog');
+  await expect(page.locator('.product-card .product-media-unavailable')).toBeVisible();
+  await expect(page.locator('.product-card img.product-photo')).toHaveCount(0);
+});
+
 test('capture actual photography-loaded screenshots for review',async({page},testInfo)=>{
   await page.goto('/');
   await expect(page.locator('.hero-title')).toBeVisible();
