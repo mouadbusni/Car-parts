@@ -1,6 +1,66 @@
 import {test,expect} from '@playwright/test';
 const pages=['/','/catalog','/categories','/cart','/about','/product/vented-performance-rotor'];
 
+
+test('header is aligned, legible and without overlapping controls from 320px to desktop',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('.logo-main')).toHaveText('Auto');
+  await expect(page.locator('.logo-accent')).toHaveText('Pro');
+  await expect(page.locator('.header-tools .tool-link')).toHaveCount(3);
+  await expect(page.locator('.header-tools a[href="/categories"]')).toHaveAttribute('aria-label','Browse product categories');
+  await expect(page.locator('.header-tools a[href="/catalog"]')).toHaveAttribute('aria-label','Explore the parts catalogue');
+  await expect(page.locator('.header-tools a[href="/cart"]')).toHaveAttribute('aria-label','Saved parts shortlist');
+  for(const width of [1440,1100,1024,820,768,760,390,360,320]){
+    await page.setViewportSize({width,height:820});
+    const geometry=await page.evaluate(()=>{
+      const rect=selector=>{
+        const el=document.querySelector(selector);
+        if(!el)throw Error('Missing '+selector);
+        const b=el.getBoundingClientRect();
+        return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,visible:getComputedStyle(el).display!=='none'};
+      };
+      return {
+        logo:rect('.logo'),
+        logoMain:rect('.logo-main'),logoAccent:rect('.logo-accent'),
+        slogan:rect('.contact-identity'),tools:rect('.header-tools'),
+        menu:rect('#menu-toggle'),
+        nav:rect('.nav-strip'),
+        scrollWidth:document.documentElement.scrollWidth,
+        clientWidth:document.documentElement.clientWidth
+      };
+    });
+    expect(geometry.logoAccent.left,width+' logo letter collision').toBeGreaterThanOrEqual(geometry.logoMain.right-1.5);
+    expect(geometry.logo.right,width+' logo/tools').toBeLessThanOrEqual(geometry.tools.left+2);
+    if(geometry.slogan.visible){
+      expect(geometry.logo.right,width+' logo/slogan').toBeLessThanOrEqual(geometry.slogan.left+2);
+      expect(geometry.slogan.right,width+' slogan/tools').toBeLessThanOrEqual(geometry.tools.left+2);
+    }
+    if(geometry.menu.visible){
+      expect(geometry.tools.right,width+' tools/menu').toBeLessThanOrEqual(geometry.menu.left+8);
+      expect(geometry.nav.visible,width+' hidden mobile nav').toBe(false);
+    }else{
+      expect(geometry.nav.visible,width+' desktop nav').toBe(true);
+    }
+    expect(geometry.scrollWidth,width+' document overflow').toBeLessThanOrEqual(geometry.clientWidth+2);
+  }
+});
+test('organized header action links lead to distinct working sections',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('link',{name:'Browse product categories'}).click();
+  await expect(page).toHaveURL(/\/categories$/);
+  await page.getByRole('link',{name:'Explore the parts catalogue'}).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await page.getByRole('link',{name:'Saved parts shortlist'}).click();
+  await expect(page).toHaveURL(/\/cart$/);
+});
+test('capture header closeups at desktop and mobile layout',async({page},testInfo)=>{
+  await page.goto('/');
+  await page.locator('.site-header').screenshot({
+    path:'cloudflare/carstore-v8/screenshots/header-'+testInfo.project.name+'.png',
+    animations:'disabled'
+  });
+});
+
 test('homepage follows the supplied four-panel CarStore composition',async({page,isMobile})=>{
   await page.goto('/');
   await expect(page.locator('[data-version="autopro-carstore-v8"]')).toBeVisible();
