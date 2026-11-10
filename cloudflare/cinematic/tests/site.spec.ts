@@ -99,7 +99,7 @@ test('cart remains usable, persistent and cannot checkout',async({page})=>{
   await expect(page.locator('[data-testid="empty-cart"]')).toBeVisible();
 });
 
-test('real D1 service remains healthy without fabricated inventory',async({request})=>{
+test('catalog API contract reports empty inventory without fabricating stock',async({request})=>{
   const health=await request.get('/api/health');
   expect(health.ok()).toBe(true);
   expect((await health.json()).service).toBe('autopro-catalog');
@@ -136,6 +136,36 @@ test('all six demonstration items use their matching technical part visuals',asy
     expect(await card.locator('.component-visual').getAttribute('aria-label')).toContain(name);
     await expect(card.locator('.product-art img')).toHaveCount(0);
   }
+});
+
+test('hiding demo examples keeps saved parts even across reloads',async({page})=>{
+  await page.goto('/catalog');
+  await page.getByRole('button',{name:/Add Vented Performance Rotor to preview selection/}).click();
+  await expect(page.locator('#header-count')).toHaveText('1');
+  await page.getByRole('button',{name:'Hide demo items'}).click();
+  await expect(page.locator('.product-card')).toHaveCount(0);
+  await expect(page.locator('#header-count')).toHaveText('1');
+  await page.locator('header .cart-link').click();
+  await expect(page.locator('[data-testid="cart-item"]')).toHaveCount(1);
+  await expect(page.locator('.cart-line h3')).toHaveText('Vented Performance Rotor');
+  await expect(page.locator('.page-top h1')).toContainText('SAVED');
+  await page.reload();
+  await expect(page.locator('[data-testid="cart-item"]')).toHaveCount(1);
+});
+
+test('mobile homepage category tiles form a readable compact mosaic',async({page,isMobile})=>{
+  await page.goto('/');
+  const tiles=page.locator('.category-gallery .category-photo');
+  await expect(tiles).toHaveCount(3);
+  if(!isMobile)return;
+  const geometry=await tiles.evaluateAll(elements=>elements.map(el=>{
+    const r=el.getBoundingClientRect();
+    return {x:r.x,y:r.y,w:r.width,h:r.height};
+  }));
+  expect(geometry[0].w).toBeGreaterThan(geometry[1].w*1.8);
+  expect(Math.abs(geometry[1].y-geometry[2].y)).toBeLessThan(3);
+  expect(geometry[1].w).toBeGreaterThan(130);
+  expect(geometry[1].h).toBeLessThan(280);
 });
 
 test('navigation uses one icon style and highlights the current section',async({page,isMobile})=>{
