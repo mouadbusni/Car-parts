@@ -70,19 +70,19 @@ test('catalog category filter and search navigate correctly',async({page})=>{
   await expect(page).toHaveURL(/category=brakes/);
   await expect(page.locator('.catalog-grid>.product-card')).toHaveCount(2);
   await page.goto('/catalog');
-  await page.locator('#catalog-search').fill('intercooler');
+  await page.locator('#catalog-search').fill('forged');
   await page.getByRole('button',{name:'FILTER PARTS'}).click();
-  await expect(page).toHaveURL(/search=intercooler/);
+  await expect(page).toHaveURL(/search=forged/);
   await expect(page.locator('.catalog-grid>.product-card')).toHaveCount(1);
-  await expect(page.locator('.catalog-grid h3')).toHaveText('Performance Intercooler');
+  await expect(page.locator('.catalog-grid h3')).toHaveText('Forged Alloy Wheel');
 });
 
 test('product detail links display matching part and example pricing',async({page})=>{
   await page.goto('/');
   await page.locator('.featured-grid .product-visual').first().click();
-  await expect(page).toHaveURL(/\/product\/vented-performance-rotor/);
-  await expect(page.locator('.detail-info h1')).toHaveText('Vented Performance Rotor');
-  await expect(page.locator('.detail-preview svg')).toHaveAttribute('aria-label',/vented brake rotor/i);
+  await expect(page).toHaveURL(/\/product\/performance-led-headlight/);
+  await expect(page.locator('.detail-info h1')).toHaveText('Performance LED Headlight');
+  await expect(page.locator('.detail-preview svg')).toHaveAttribute('aria-label',/car headlight/i);
   await expect(page.locator('.detail-info')).toContainText('Sample price');
   await page.locator('.detail-info [data-save]').click();
   await expect(page.locator('#saved-count')).toHaveText('1');
