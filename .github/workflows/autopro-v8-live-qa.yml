@@ -26,6 +26,13 @@ jobs:
         run: |
           curl -fsS --retry 12 --retry-delay 5 --retry-all-errors "$AUTOPRO_BASE_URL/" > /tmp/autopro-v8-live.html
           grep -q 'AutoPro' /tmp/autopro-v8-live.html
+          grep -q 'logo-main' /tmp/autopro-v8-live.html
+          if curl -fsS "$AUTOPRO_BASE_URL/site.css" | grep -q 'FULL-WIDTH edge anchors above'; then
+            echo "Edge-aligned upper header and centered secondary navigation stylesheet is live"
+          else
+            echo "Expected header alignment stylesheet is missing"
+            exit 1
+          fi
           curl -fsS "$AUTOPRO_BASE_URL/site.css" | grep -q 'category-tile'
           curl -fsS "$AUTOPRO_BASE_URL/app.js" | grep -q 'autopro-carstore-v8'
           test "$(curl -sS -o /dev/null -w '%{http_code}' "$AUTOPRO_BASE_URL/api/products")" = "404"
