@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/server/admin-auth';
+import { ADMIN_SESSION_COOKIE, verifyAdminAccessToken } from '@/lib/admin-auth';
 
-// Server-verified authorization is required before returning any admin page.
-// A forged 'sb-auth-token' cookie or user_metadata is never authoritative.
+// A browser-editable cookie is not proof of authorization.
+// Verify every protected navigation against Supabase Auth and trusted app_metadata.
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (!token || !(await verifyAdminToken(token))) {
+  const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const admin = token ? await verifyAdminAccessToken(token) : null;
+  if (!admin) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.search = '';
-    return NextResponse.redirect(loginUrl, { headers: { 'Cache-Control': 'no-store' } });
+    return NextResponse.redirect(loginUrl, {
+      headers: { 'Cache-Control': 'no-store' },
+    });
   }
   const response = NextResponse.next();
   response.headers.set('Cache-Control', 'no-store');
