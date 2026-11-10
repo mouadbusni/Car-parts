@@ -1,0 +1,83 @@
+name: AutoPro V7 — frontend-only design and deployment QA
+
+on:
+  push:
+    branches: ['design/autopro-frontend-v7-deploy']
+    paths:
+      - 'cloudflare/frontend/**'
+      - 'cloudflare/preview-site/index.html'
+      - 'cloudflare/preview-site/app.js'
+      - 'cloudflare/cinematic/site.css'
+      - 'cloudflare/cinematic/assets/**'
+      - '.github/workflows/autopro-v7-frontend-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Static Worker and desktop/mobile UI test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AUTOPRO_BASE_URL: http://127.0.0.1:4177
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build self-contained frontend Worker
+        run: |
+          node --check cloudflare/preview-site/app.js
+          node cloudflare/frontend/build.mjs
+          node --check cloudflare/frontend/dist/worker.mjs
+      - name: Verify static Worker and disabled backend routes
+        run: node --test cloudflare/frontend/tests/worker.test.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start local static web server
+        run: |
+          node cloudflare/frontend/tests/local-server.mjs > /tmp/autopro-v7.log 2>&1 &
+          for n in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:4177 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/autopro-v7.log
+          exit 1
+      - name: Create review capture directory
+        run: mkdir -p cloudflare/frontend/screenshots
+      - name: Run real desktop/mobile browser checks
+        run: npx playwright test --config cloudflare/frontend/playwright.config.ts --workers=1
+      - name: Verify nonblank screenshots
+        run: |
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageStat
+          for name in ('desktop.jpg','mobile.jpg'):
+            p=Path('cloudflare/frontend/screenshots')/name
+            im=Image.open(p).convert('RGB')
+            assert im.width>=390 and im.height>=844,(name,im.size)
+            assert max(ImageStat.Stat(im).stddev)>25,(name,'low-detail capture')
+            print(name, im.size, p.stat().st_size)
+          PY
+      - name: Upload full-page design review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v7-desktop-mobile-review
+          path: cloudflare/frontend/screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload traces on failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopro-v7-browser-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
