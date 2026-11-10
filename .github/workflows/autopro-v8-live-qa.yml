@@ -1,8 +1,8 @@
-name: AutoPro V8 — deployed reference-clone browser QA
+name: AutoPro V8 — deployed organized header QA
 
 on:
   push:
-    branches: ['design/autopro-carstore-reference-v8']
+    branches: ['design/autopro-v8-header-organization']
     paths:
       - '.github/workflows/autopro-v8-live-qa.yml'
   workflow_dispatch:
@@ -42,7 +42,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: autopro-v8-LIVE-reference-clone
+          name: autopro-v8-LIVE-organized-header
           path: cloudflare/carstore-v8/screenshots/
           if-no-files-found: ignore
           retention-days: 14
@@ -50,7 +50,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: autopro-v8-LIVE-errors
+          name: autopro-v8-LIVE-header-errors
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
