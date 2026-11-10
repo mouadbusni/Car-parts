@@ -25,7 +25,15 @@ for(const [key,path] of Object.entries(files)){
   const target='__'+key+'__';
   if(built.split(target).length!==2)throw new Error('Expected one placeholder '+target);
   const contents=key.startsWith('MEDIA_')?file.toString('base64'):file.toString('utf8');
-  built=built.replace(target,JSON.stringify(contents));
+  // Callback replacement avoids JavaScript 
+}
+if(/__(?:AUTOPRO|MEDIA)_/.test(built))throw new Error('Unbundled placeholder in Worker');
+const destination=resolve(root,'cloudflare/frontend/dist/worker.mjs');
+await mkdir(dirname(destination),{recursive:true});
+await writeFile(destination,built);
+console.log('AutoPro frontend Worker built:',built.length,'bytes',createHash('sha256').update(built).digest('hex'));
+ and built=built.replace(target,JSON.stringify(contents)); substitution in source text.
+  built=built.replace(target,()=>JSON.stringify(contents));
 }
 if(/__(?:AUTOPRO|MEDIA)_/.test(built))throw new Error('Unbundled placeholder in Worker');
 const destination=resolve(root,'cloudflare/frontend/dist/worker.mjs');
