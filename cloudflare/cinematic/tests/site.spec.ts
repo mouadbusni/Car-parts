@@ -17,7 +17,7 @@ async function loadAllImages(page){
   });
 }
 
-test('refined AutoPro identity and useful hero are live',async({page})=>{
+test('refined AutoPro identity and useful hero are live',async({page,isMobile})=>{
   await page.goto('/');
   await expect(page.locator('[data-version="autopro-refined-v4"]')).toBeVisible();
   await expect(page.locator('.hero-title')).toContainText('The details');
@@ -31,7 +31,8 @@ test('refined AutoPro identity and useful hero are live',async({page})=>{
   await expect(page.getByText('DEMO CATALOGUE').first()).toBeVisible();
   expect(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(11, 17, 27)');
   await expect(page.locator('header .brand-word')).toContainText('Auto');
-  await expect(page.locator('header .header-cta')).toBeVisible();
+  if(isMobile)await expect(page.locator('#menu-toggle')).toBeVisible();
+  else await expect(page.locator('header .header-cta')).toBeVisible();
   expect(await page.locator('#brake-canvas').count()).toBe(0);
 });
 
