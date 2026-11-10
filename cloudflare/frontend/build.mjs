@@ -6,9 +6,9 @@ import {createHash} from 'node:crypto';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 let built=await readFile(resolve(root,'cloudflare/frontend/worker.mjs'),'utf8');
 const files={
-  AUTOPRO_HTML:'cloudflare/preview-site/index.html',
-  AUTOPRO_CSS:'cloudflare/cinematic/site.css',
-  AUTOPRO_JS:'cloudflare/preview-site/app.js',
+  AUTOPRO_HTML:'cloudflare/carstore-v8/index.html',
+  AUTOPRO_CSS:'cloudflare/carstore-v8/site.css',
+  AUTOPRO_JS:'cloudflare/carstore-v8/app.js',
   MEDIA_HERO:'cloudflare/cinematic/assets/hero.webp',
   MEDIA_BRAKES:'cloudflare/cinematic/assets/brakes.webp',
   MEDIA_WHEELS:'cloudflare/cinematic/assets/wheels.webp',
