@@ -4,8 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const source=await readFile(resolve(root,'cloudflare/frontend/worker.mjs'),'utf8');
-let built=source;
+let built=await readFile(resolve(root,'cloudflare/frontend/worker.mjs'),'utf8');
 const files={
   AUTOPRO_HTML:'cloudflare/preview-site/index.html',
   AUTOPRO_CSS:'cloudflare/cinematic/site.css',
@@ -17,26 +16,25 @@ const files={
   MEDIA_DRIVE:'cloudflare/cinematic/assets/drive.webp'
 };
 for(const [key,path] of Object.entries(files)){
-  const file=await readFile(resolve(root,path));
+  const bytes=await readFile(resolve(root,path));
   if(key.startsWith('MEDIA_')){
-    if(file.toString('ascii',0,4)!=='RIFF'||file.toString('ascii',8,12)!=='WEBP')
-      throw new Error('Bad WebP asset: '+path);
+    if(bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP'){
+      throw new Error('Not a valid local WebP: '+path);
+    }
   }
-  const target='__'+key+'__';
-  if(built.split(target).length!==2)throw new Error('Expected one placeholder '+target);
-  const contents=key.startsWith('MEDIA_')?file.toString('base64'):file.toString('utf8');
-  // Callback replacement avoids JavaScript 
+  const placeholder='__'+key+'__';
+  if(built.split(placeholder).length!==2){
+    throw new Error('Expected exactly one placeholder: '+placeholder);
+  }
+  const data=key.startsWith('MEDIA_')?bytes.toString('base64'):bytes.toString('utf8');
+  // Replacement callback preserves source code including special dollar tokens.
+  built=built.replace(placeholder,()=>JSON.stringify(data));
 }
-if(/__(?:AUTOPRO|MEDIA)_/.test(built))throw new Error('Unbundled placeholder in Worker');
-const destination=resolve(root,'cloudflare/frontend/dist/worker.mjs');
-await mkdir(dirname(destination),{recursive:true});
-await writeFile(destination,built);
-console.log('AutoPro frontend Worker built:',built.length,'bytes',createHash('sha256').update(built).digest('hex'));
- and built=built.replace(target,JSON.stringify(contents)); substitution in source text.
-  built=built.replace(target,()=>JSON.stringify(contents));
+if(/__(?:AUTOPRO|MEDIA)_/.test(built)){
+  throw new Error('Unbundled Worker placeholder');
 }
-if(/__(?:AUTOPRO|MEDIA)_/.test(built))throw new Error('Unbundled placeholder in Worker');
-const destination=resolve(root,'cloudflare/frontend/dist/worker.mjs');
-await mkdir(dirname(destination),{recursive:true});
-await writeFile(destination,built);
-console.log('AutoPro frontend Worker built:',built.length,'bytes',createHash('sha256').update(built).digest('hex'));
+const dest=resolve(root,'cloudflare/frontend/dist/worker.mjs');
+await mkdir(dirname(dest),{recursive:true});
+await writeFile(dest,built);
+console.log('AutoPro Worker built',built.length,'bytes',
+  createHash('sha256').update(built).digest('hex'));
